@@ -24,7 +24,7 @@ final class Address: Model, Content {
     var roadName: String
     
     @Field(key: "street_number")
-    var streeNumber: String
+    var streetNumber: String
     
     @OptionalField(key: "complement")
     var complement: String?
@@ -56,7 +56,7 @@ final class Address: Model, Content {
          country: String) {
         self.id = id
         self.roadName = roadType
-        self.streeNumber = streetNumber
+        self.streetNumber = streetNumber
         self.complement = complement
         self.zipCode = zipCode
         self.city = city

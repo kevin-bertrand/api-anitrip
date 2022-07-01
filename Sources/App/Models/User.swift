@@ -44,33 +44,29 @@ final class User: Model, Content {
     @Field(key: "is_active")
     var isActive: Bool
     
-    @Parent(key: "address_id")
-    var address: Address
+    @Field(key: "is_deleted")
+    var isDeleted: Bool
+    
+    @OptionalParent(key: "address_id")
+    var address: Address?
     
     // Initialization functions
     init() {}
     
     init(id: UUID? = nil,
-         firstname: String,
-         lastname: String,
          email: String,
-         phoneNumber: String,
-         gender: Gender,
-         password: String,
-         position: Position,
-         missions: [String],
-         isActive: Bool,
-         addressID: Address.IDValue) {
+         password: String) {
         self.id = id
-        self.firstname = firstname
-        self.lastname = lastname
+        self.firstname = ""
+        self.lastname = ""
         self.email = email
-        self.phoneNumber = phoneNumber
-        self.gender = gender
+        self.phoneNumber = ""
+        self.gender = .notDetermined
         self.password = password
-        self.position = position
-        self.missions = missions
-        self.isActive = isActive
-        self.$address.id = addressID
+        self.position = .user
+        self.missions = []
+        self.isActive = false
+        self.isDeleted = false
+        self.$address.id = nil
     }
 }
