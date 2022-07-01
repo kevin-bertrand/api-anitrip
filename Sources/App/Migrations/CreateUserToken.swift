@@ -13,6 +13,7 @@ struct CreateUserToken: AsyncMigration {
     func prepare(on database: Database) async throws {
         try await database.schema(UserToken.schema)
             .id()
+            .field("creation_date", .datetime, .required)
             .field("value", .string, .required)
             .foreignKey("user_id", references: User.schema, "id", onDelete: .cascade)
             .unique(on: "value")
