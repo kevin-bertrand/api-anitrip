@@ -25,6 +25,7 @@ public func configure(_ app: Application) throws {
     app.migrations.add(CreateTrip())
     app.migrations.add(CreateUser())
     app.migrations.add(CreateUserToken())
+    app.migrations.add(CreateAddressTrip())
 
     // register routes
     try routes(app)
