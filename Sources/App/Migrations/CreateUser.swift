@@ -33,7 +33,7 @@ struct CreateUser: AsyncMigration {
             .field("position", position , .required)
             .field("misions", .array(of: .string), .required)
             .field("is_active", .bool, .required)
-            .field("address_id", .uuid, .required, .references(Address.schema, "id"))
+            .foreignKey("address_id", references: Address.schema, "id")
             .unique(on: "email")
             .create()
     }
