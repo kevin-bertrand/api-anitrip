@@ -32,14 +32,18 @@ final class Trip: Model, Content {
     @Siblings(through: AddressTrip.self, from: \.$trip, to: \.$address)
     public var address: [Address]
     
+    @Parent(key: "user_id")
+    var user: User
+    
     // Initialization functions
     init() {}
     
-    init(id: UUID? = nil, date: Date, missions: [String], comment: String?, totalDistance: Double) {
+    init(id: UUID? = nil, date: Date, missions: [String], comment: String?, totalDistance: Double, userID: User.IDValue) {
         self.id = id
         self.date = date
         self.missions = missions
         self.comment = comment
         self.totalDistance = totalDistance
+        self.$user.id = userID
     }
 }

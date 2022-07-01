@@ -17,6 +17,7 @@ struct CreateTrip: AsyncMigration {
             .field("missions", .array(of: .string), .required)
             .field("comment", .string)
             .field("total_distance", .double, .required)
+            .field("user_id", .uuid, .required, .references(User.schema, "id"))
             .create()
     }
     
