@@ -29,13 +29,13 @@ final class User: Model, Content {
     @Field(key: "phone_number")
     var phoneNumber: String
     
-    @Field(key: "gender")
+    @Enum(key: "gender")
     var gender: Gender
     
     @Field(key: "password")
     var password: String
     
-    @Field(key: "position")
+    @Enum(key: "position")
     var position: Position
     
     @Field(key: "missions")
