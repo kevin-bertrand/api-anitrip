@@ -7,6 +7,8 @@
 
 import Foundation
 
-enum Gender: Codable {
-    case man, woman, notDetermined
+enum Gender: String, Codable {
+    case man = "man"
+    case woman = "woman"
+    case notDetermined = "not_determined"
 }
