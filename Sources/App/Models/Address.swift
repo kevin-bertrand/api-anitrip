@@ -41,6 +41,9 @@ final class Address: Model, Content {
     @Siblings(through: AddressTrip.self, from: \.$address, to: \.$trip)
     public var trips: [Trip]
     
+    @Children(for: \.$address)
+    var users: [User]
+    
     // Initialization functions
     init() {}
     

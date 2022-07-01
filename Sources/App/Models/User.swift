@@ -44,6 +44,9 @@ final class User: Model, Content {
     @Field(key: "is_active")
     var isActive: Bool
     
+    @Parent(key: "address_id")
+    var address: Address
+    
     // Initialization functions
     init() {}
     
@@ -56,7 +59,8 @@ final class User: Model, Content {
          password: String,
          position: Position,
          missions: [String],
-         isActive: Bool) {
+         isActive: Bool,
+         addressID: Address.IDValue) {
         self.id = id
         self.firstname = firstname
         self.lastname = lastname
@@ -67,5 +71,6 @@ final class User: Model, Content {
         self.position = position
         self.missions = missions
         self.isActive = isActive
+        self.$address.id = addressID
     }
 }
