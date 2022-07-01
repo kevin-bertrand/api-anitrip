@@ -29,6 +29,9 @@ final class Trip: Model, Content {
     @Field(key: "total_distance")
     var totalDistance: Double
     
+    @Siblings(through: AddressTrip.self, from: \.$trip, to: \.$address)
+    public var address: [Address]
+    
     // Initialization functions
     init() {}
     

@@ -38,6 +38,9 @@ final class Address: Model, Content {
     @Field(key: "country")
     var country: String
     
+    @Siblings(through: AddressTrip.self, from: \.$address, to: \.$trip)
+    public var trips: [Trip]
+    
     // Initialization functions
     init() {}
     
