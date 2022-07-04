@@ -29,8 +29,11 @@ final class Trip: Model, Content {
     @Field(key: "total_distance")
     var totalDistance: Double
     
-    @Siblings(through: AddressTrip.self, from: \.$trip, to: \.$address)
-    public var address: [Address]
+    @Parent(key: "starting_address")
+    var startingAddress: Address
+    
+    @Parent(key: "ending_address")
+    var endingAddress: Address
     
     @Parent(key: "user_id")
     var user: User
@@ -38,12 +41,14 @@ final class Trip: Model, Content {
     // Initialization functions
     init() {}
     
-    init(id: UUID? = nil, date: Date, missions: [String], comment: String?, totalDistance: Double, userID: User.IDValue) {
+    init(id: UUID? = nil, date: Date, missions: [String], comment: String?, totalDistance: Double, userID: User.IDValue, startingAddressID: Address.IDValue, endingAddressID: Address.IDValue) {
         self.id = id
         self.date = date
         self.missions = missions
         self.comment = comment
         self.totalDistance = totalDistance
         self.$user.id = userID
+        self.$startingAddress.id = startingAddressID
+        self.$endingAddress.id = endingAddressID
     }
 }
