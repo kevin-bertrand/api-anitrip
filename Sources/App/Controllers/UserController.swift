@@ -26,6 +26,7 @@ struct UserController: RouteCollection {
         tokenGroup.patch("position", use: updatePosition)
         tokenGroup.patch(use: update)
         tokenGroup.get(use: getList)
+        tokenGroup.get("toActivate", use: getToActivateAccount)
     }
     
     // MARK: Routes functions
@@ -79,6 +80,19 @@ struct UserController: RouteCollection {
             .update()
         
         return Response(status: .accepted, version: .http3, headersNoUpdate: HTTPHeaders(), body: .empty)
+    }
+    
+    /// Get account to active list
+    private func getToActivateAccount(req: Request) async throws -> Response {
+        guard (try req.auth.require(User.self)).position == .administrator else {
+            throw Abort(.unauthorized)
+        }
+        
+        let userToActive = try await User.query(on: req.db)
+            .filter(\.$isActive == false)
+            .all()
+        
+        return Response(status: .ok, version: .http3, headersNoUpdate: HTTPHeaders(), body: .init(data: try JSONEncoder().encode(userToActive)))
     }
     
     /// Delete account
