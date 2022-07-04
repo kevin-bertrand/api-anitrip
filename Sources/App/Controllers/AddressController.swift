@@ -17,7 +17,9 @@ struct AddressController: RouteCollection {
     
     
     // MARK: Utilities functions
-    func create(_ address: Address, for req: Request) async throws -> UUID? {
+    func create(_ address: Address?, for req: Request) async throws -> UUID? {
+        guard let address = address else { return nil }
+        
         if let addressId = try await checkIfAddressExists(address, for: req) {
             return addressId
         }

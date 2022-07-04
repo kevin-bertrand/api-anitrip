@@ -36,8 +36,7 @@ struct UserController: RouteCollection {
             throw Abort(.unauthorized)
         }
         
-        let token = try userAuth.generateToken()
-        try await token.save(on: req.db)
+        let token = try await generateToken(for: userAuth, in: req)
         let userInformations = User.Connected(firstname: userAuth.firstname,
                                               lastname: userAuth.lastname,
                                               email: userAuth.email,
@@ -130,21 +129,17 @@ struct UserController: RouteCollection {
             throw Abort(.unauthorized)
         }
         
-        var newPassword = userAuth.password
+        var password = userAuth.password
+        var token: UserToken?
         
-        if let password = receivedData.password,
-           let passwordVerification = receivedData.passwordVerification {
-            guard password == passwordVerification else {
-                throw Abort(.notAcceptable)
-            }
-            newPassword = try Bcrypt.hash(password)
+        if let newPassword = try await checkNewPassword(for: userAuth, with: receivedData, in: req),
+           let userID = userAuth.id {
+            password = newPassword
+            token = try await generateToken(for: userAuth, in: req)
+            try await deleteToken(for: userID, in: req)
         }
         
-        var addressId: UUID?
-        
-        if let address = receivedData.address {
-            addressId = try await addressController.create(address, for: req)
-        }
+        let addressId: UUID? = try await addressController.create(receivedData.address, for: req)
         
         try await User.query(on: req.db)
             .filter(\.$email == userAuth.email)
@@ -152,12 +147,12 @@ struct UserController: RouteCollection {
             .set(\.$lastname, to: receivedData.lastname)
             .set(\.$phoneNumber, to: receivedData.phoneNumber)
             .set(\.$gender, to: receivedData.gender)
-            .set(\.$password, to: newPassword)
+            .set(\.$password, to: password)
             .set(\.$missions, to: receivedData.missions)
             .set(\.$address.$id, to: addressId)
             .update()
         
-        return Response(status: .accepted, version: .http3, headersNoUpdate: HTTPHeaders(), body: .empty)
+        return Response(status: .accepted, version: .http3, headersNoUpdate: HTTPHeaders(), body: (token == nil) ? .empty : .init(data: try JSONEncoder().encode(token!.value)))
     }
     
     /// Getting the user list
@@ -174,5 +169,32 @@ struct UserController: RouteCollection {
     // MARK: Utilities functions
     private func getUserAuthFor(_ req: Request) throws -> User {
         return try req.auth.require(User.self)
+    }
+    
+    private func generateToken(for user: User, in req: Request) async throws -> UserToken {
+        let token = try user.generateToken()
+        try await token.save(on: req.db)
+        return token
+    }
+    
+    private func deleteToken(for userID: UUID, in req: Request) async throws {
+        try await UserToken.query(on: req.db)
+            .filter(\.$user.$id == userID)
+            .all()
+            .delete(on: req.db)
+    }
+    
+    private func checkNewPassword(for user: User, with newInformations: User.Update, in req: Request) async throws -> String? {
+        var newPassword: String?
+        
+        if let password = newInformations.password,
+           let passwordVerification = newInformations.passwordVerification {
+            guard password == passwordVerification else {
+                throw Abort(.notAcceptable)
+            }
+            newPassword = try Bcrypt.hash(password)
+        }
+        
+        return newPassword
     }
 }
