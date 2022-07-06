@@ -12,7 +12,7 @@ struct UserController: RouteCollection {
     // Properties
     var addressController: AddressController
     
-    /// Route initialisation
+    
     func boot(routes: RoutesBuilder) throws {
         let userGroup = routes.grouped("user")
         userGroup.post("create", use: create)
@@ -143,15 +143,18 @@ struct UserController: RouteCollection {
             throw Abort(.unauthorized)
         }
         
-        var password = userAuth.password
-        var token: UserToken?
-        
-        if let newPassword = try await checkNewPassword(for: userAuth, with: receivedData, in: req),
-           let userID = userAuth.id {
-            password = newPassword
-            token = try await generateToken(for: userAuth, in: req)
-            try await deleteToken(for: userID, in: req)
+        guard let userID = userAuth.id else {
+            throw Abort(.notAcceptable)
         }
+        
+        var password = userAuth.password
+        
+        if let newPassword = try await checkNewPassword(for: userAuth, with: receivedData, in: req) {
+            password = newPassword
+        }
+        
+        let token = try await generateToken(for: userAuth, in: req)
+        try await deleteToken(for: userID, in: req)
         
         let addressId: UUID? = try await addressController.create(receivedData.address, for: req)
         
@@ -166,7 +169,9 @@ struct UserController: RouteCollection {
             .set(\.$address.$id, to: addressId)
             .update()
         
-        return Response(status: .accepted, version: .http3, headersNoUpdate: HTTPHeaders(), body: (token == nil) ? .empty : .init(data: try JSONEncoder().encode(token!.value)))
+        let updatedUser = User.Connected(firstname: receivedData.firstname, lastname: receivedData.lastname, email: userAuth.email, phoneNumber: receivedData.phoneNumber, gender: receivedData.gender, position: userAuth.position, missions: receivedData.missions, address: receivedData.address, token: token.value)
+        
+        return Response(status: .accepted, version: .http3, headersNoUpdate: HTTPHeaders(), body: .init(data: try JSONEncoder().encode(updatedUser)))
     }
     
     /// Getting the user list
