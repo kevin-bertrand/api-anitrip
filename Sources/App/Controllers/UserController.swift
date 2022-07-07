@@ -203,18 +203,13 @@ struct UserController: RouteCollection {
     }
     
     private func checkNewPassword(for user: User, with newInformations: User.Update, in req: Request) async throws -> String? {
-        var newPassword: String?
+        guard newInformations.password != nil && newInformations.passwordVerification != nil else { return nil }
         
-        if let password = newInformations.password,
-           let passwordVerification = newInformations.passwordVerification,
-           !password.isEmpty && !passwordVerification.isEmpty {
-            guard password == passwordVerification else {
-                throw Abort(.notAcceptable)
-            }
-            newPassword = try Bcrypt.hash(password)
+        guard newInformations.password == newInformations.passwordVerification, let password = newInformations.password else {
+            throw Abort(.notAcceptable)
         }
         
-        return newPassword
+        return password
     }
     
     private func getDefaultHttpHeader() -> HTTPHeaders {
