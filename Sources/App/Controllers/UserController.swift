@@ -47,10 +47,7 @@ struct UserController: RouteCollection {
                                               missions: userAuth.missions,
                                               address: userAuth.address,
                                               token: token.value)
-        return Response(status: .ok,
-                        version: .http3,
-                        headersNoUpdate: HTTPHeaders(),
-                        body: .init(data: try JSONEncoder().encode(userInformations)))
+        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(userInformations)))
     }
     
     /// Create new user
@@ -60,7 +57,7 @@ struct UserController: RouteCollection {
             throw Abort(.notAcceptable)
         }
         try await User(email: receivedData.email, password: try Bcrypt.hash(receivedData.password)).save(on: req.db)
-        return Response(status: .created, version: .http3, headersNoUpdate: HTTPHeaders(), body: .empty)
+        return .init(status: .created, headers: getDefaultHttpHeader(), body: .empty)
     }
     
     /// Activate account
@@ -79,7 +76,7 @@ struct UserController: RouteCollection {
             .set(\.$isActive, to: true)
             .update()
         
-        return Response(status: .accepted, version: .http3, headersNoUpdate: HTTPHeaders(), body: .empty)
+        return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .empty)
     }
     
     /// Get account to active list
@@ -92,7 +89,7 @@ struct UserController: RouteCollection {
             .filter(\.$isActive == false)
             .all()
         
-        return Response(status: .ok, version: .http3, headersNoUpdate: HTTPHeaders(), body: .init(data: try JSONEncoder().encode(userToActive)))
+        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(userToActive)))
     }
     
     /// Delete account
@@ -112,7 +109,7 @@ struct UserController: RouteCollection {
             .set(\.$isActive, to: true)
             .update()
         
-        return Response(status: .accepted, version: .http3, headersNoUpdate: HTTPHeaders(), body: .empty)
+        return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .empty)
     }
     
     /// Update position
@@ -132,7 +129,7 @@ struct UserController: RouteCollection {
             .set(\.$position, to: receivedData.position)
             .update()
         
-        return Response(status: .accepted, version: .http3, headersNoUpdate: HTTPHeaders(), body: .empty)
+        return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .empty)
     }
     
     /// Update user informations
@@ -171,7 +168,7 @@ struct UserController: RouteCollection {
         
         let updatedUser = User.Connected(firstname: receivedData.firstname, lastname: receivedData.lastname, email: userAuth.email, phoneNumber: receivedData.phoneNumber, gender: receivedData.gender, position: userAuth.position, missions: receivedData.missions, address: receivedData.address, token: token.value)
         
-        return Response(status: .accepted, version: .http3, headersNoUpdate: HTTPHeaders(), body: .init(data: try JSONEncoder().encode(updatedUser)))
+        return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(updatedUser)))
     }
     
     /// Getting the user list
@@ -215,5 +212,11 @@ struct UserController: RouteCollection {
         }
         
         return newPassword
+    }
+    
+    private func getDefaultHttpHeader() -> HTTPHeaders {
+        var headers = HTTPHeaders()
+        headers.add(name: .contentType, value: "application/json")
+        return headers
     }
 }

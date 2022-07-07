@@ -42,7 +42,7 @@ struct TripController: RouteCollection {
         
         try await newTrip.save(on: req.db)
         
-        return Response(status: .ok, version: .http3, headersNoUpdate: HTTPHeaders(), body: .empty)
+        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .empty)
     }
     
     private func update(req: Request) async throws -> Response {
@@ -64,7 +64,7 @@ struct TripController: RouteCollection {
             .set(\.$comment, to: receivedData.comment)
             .update()
         
-        return Response(status: .ok, version: .http3, headersNoUpdate: HTTPHeaders(), body: .empty)
+        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .empty)
     }
     
     private func getList(req: Request) async throws -> Response {
@@ -76,11 +76,17 @@ struct TripController: RouteCollection {
             .filter(\.$user.$id == userId)
             .all()
         
-        return Response(status: .ok, version: .http3, headersNoUpdate: HTTPHeaders(), body: .init(data: try JSONEncoder().encode(trips)))
+        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(trips)))
     }
     
     // MARK: Utilities functions
     private func getUserAuthFor(_ req: Request) throws -> User {
         return try req.auth.require(User.self)
+    }
+    
+    private func getDefaultHttpHeader() -> HTTPHeaders {
+        var headers = HTTPHeaders()
+        headers.add(name: .contentType, value: "application/json")
+        return headers
     }
 }
