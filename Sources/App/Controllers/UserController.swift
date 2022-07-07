@@ -34,7 +34,7 @@ struct UserController: RouteCollection {
     private func login(req: Request) async throws -> Response {
         let userAuth = try getUserAuthFor(req)
         guard userAuth.isActive else {
-            throw Abort(.unauthorized)
+            throw Abort(.custom(code: 460, reasonPhrase: "Account not active"))
         }
         
         let token = try await generateToken(for: userAuth, in: req)
@@ -47,7 +47,8 @@ struct UserController: RouteCollection {
                                               position: userAuth.position,
                                               missions: userAuth.missions,
                                               address: userAuth.address,
-                                              token: token.value)
+                                              token: token.value,
+                                              isActive: userAuth.isActive)
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(userInformations)))
     }
     
@@ -138,7 +139,7 @@ struct UserController: RouteCollection {
         let userAuth = try getUserAuthFor(req)
         let receivedData = try req.content.decode(User.Update.self)
         guard userAuth.isActive else {
-            throw Abort(.unauthorized)
+            throw Abort(.custom(code: 460, reasonPhrase: "Account not active"))
         }
         
         guard let userID = userAuth.id else {
@@ -167,7 +168,7 @@ struct UserController: RouteCollection {
             .set(\.$address.$id, to: addressId)
             .update()
         
-        let updatedUser = User.Connected(id: userAuth.id, firstname: receivedData.firstname, lastname: receivedData.lastname, email: userAuth.email, phoneNumber: receivedData.phoneNumber, gender: receivedData.gender, position: userAuth.position, missions: receivedData.missions, address: receivedData.address, token: token.value)
+        let updatedUser = User.Connected(id: userAuth.id, firstname: receivedData.firstname, lastname: receivedData.lastname, email: userAuth.email, phoneNumber: receivedData.phoneNumber, gender: receivedData.gender, position: userAuth.position, missions: receivedData.missions, address: receivedData.address, token: token.value, isActive: userAuth.isActive)
         
         return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(updatedUser)))
     }

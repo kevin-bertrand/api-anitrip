@@ -19,6 +19,7 @@ extension User {
         let missions: [String]
         let address: Address?
         let token: String
+        let isActive: Bool
     }
     
     struct Create: Codable {
