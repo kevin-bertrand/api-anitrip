@@ -206,7 +206,8 @@ struct UserController: RouteCollection {
         var newPassword: String?
         
         if let password = newInformations.password,
-           let passwordVerification = newInformations.passwordVerification {
+           let passwordVerification = newInformations.passwordVerification,
+           !password.isEmpty && !passwordVerification.isEmpty {
             guard password == passwordVerification else {
                 throw Abort(.notAcceptable)
             }
