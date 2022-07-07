@@ -149,7 +149,7 @@ struct UserController: RouteCollection {
         var password = userAuth.password
         
         if let newPassword = try await checkNewPassword(for: userAuth, with: receivedData, in: req) {
-            password = newPassword
+            password = try Bcrypt.hash(newPassword)
         }
         
         let token = try await generateToken(for: userAuth, in: req)
