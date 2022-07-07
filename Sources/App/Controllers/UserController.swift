@@ -165,7 +165,7 @@ struct UserController: RouteCollection {
             .set(\.$gender, to: receivedData.gender)
             .set(\.$password, to: password)
             .set(\.$missions, to: receivedData.missions)
-            .set(\.$address.$id, to: addressId)
+//            .set(\.$address.$id, to: addressId)
             .update()
         
         let updatedUser = User.Connected(id: userAuth.id, firstname: receivedData.firstname, lastname: receivedData.lastname, email: userAuth.email, phoneNumber: receivedData.phoneNumber, gender: receivedData.gender, position: userAuth.position, missions: receivedData.missions, address: receivedData.address, token: token.value, isActive: userAuth.isActive)

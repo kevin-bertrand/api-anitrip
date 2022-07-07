@@ -39,7 +39,7 @@ extension User {
         let phoneNumber: String
         let gender: Gender
         let missions: [String]
-        let address: Address?
+//        let address: Address?
         let password: String?
         let passwordVerification: String?
     }
