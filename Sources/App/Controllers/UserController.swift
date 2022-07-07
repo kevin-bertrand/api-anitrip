@@ -203,7 +203,7 @@ struct UserController: RouteCollection {
     }
     
     private func checkNewPassword(for user: User, with newInformations: User.Update, in req: Request) async throws -> String? {
-        guard (newInformations.password != nil && newInformations.passwordVerification != nil && newInformations.password == Optional("")) else { return nil }
+        guard (newInformations.password != nil && newInformations.passwordVerification != nil && newInformations.password != Optional("")) else { return nil }
         
         guard newInformations.password == newInformations.passwordVerification, let password = newInformations.password else {
             throw Abort(.notAcceptable)
