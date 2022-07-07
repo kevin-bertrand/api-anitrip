@@ -38,7 +38,8 @@ struct UserController: RouteCollection {
         }
         
         let token = try await generateToken(for: userAuth, in: req)
-        let userInformations = User.Connected(firstname: userAuth.firstname,
+        let userInformations = User.Connected(id: userAuth.id,
+                                              firstname: userAuth.firstname,
                                               lastname: userAuth.lastname,
                                               email: userAuth.email,
                                               phoneNumber: userAuth.phoneNumber,
@@ -166,7 +167,7 @@ struct UserController: RouteCollection {
             .set(\.$address.$id, to: addressId)
             .update()
         
-        let updatedUser = User.Connected(firstname: receivedData.firstname, lastname: receivedData.lastname, email: userAuth.email, phoneNumber: receivedData.phoneNumber, gender: receivedData.gender, position: userAuth.position, missions: receivedData.missions, address: receivedData.address, token: token.value)
+        let updatedUser = User.Connected(id: userAuth.id, firstname: receivedData.firstname, lastname: receivedData.lastname, email: userAuth.email, phoneNumber: receivedData.phoneNumber, gender: receivedData.gender, position: userAuth.position, missions: receivedData.missions, address: receivedData.address, token: token.value)
         
         return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(updatedUser)))
     }
