@@ -22,8 +22,8 @@ public func configure(_ app: Application) throws {
 
     // Migration
     app.migrations.add(CreateAddress())
-    app.migrations.add(CreateTrip())
     app.migrations.add(CreateUser())
+    app.migrations.add(CreateTrip())
     app.migrations.add(CreateUserToken())
 
     // register routes
