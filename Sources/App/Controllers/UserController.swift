@@ -147,14 +147,13 @@ struct UserController: RouteCollection {
         }
         
         var password = userAuth.password
-        print("Password 1: \(password)")
+
         if let newPassword = try await checkNewPassword(for: userAuth, with: receivedData, in: req) {
             password = try Bcrypt.hash(newPassword)
         }
-        print("Password 2: \(password)")
-        let token = try await generateToken(for: userAuth, in: req)
-        try await deleteToken(for: userID, in: req)
         
+        try await deleteToken(for: userID, in: req)
+        let token = try await generateToken(for: userAuth, in: req)
 //        let addressId: UUID? = try await addressController.create(receivedData.address, for: req)
         
         try await User.query(on: req.db)
