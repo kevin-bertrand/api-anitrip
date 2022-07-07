@@ -155,7 +155,7 @@ struct UserController: RouteCollection {
         let token = try await generateToken(for: userAuth, in: req)
         try await deleteToken(for: userID, in: req)
         
-        let addressId: UUID? = try await addressController.create(receivedData.address, for: req)
+//        let addressId: UUID? = try await addressController.create(receivedData.address, for: req)
         
         try await User.query(on: req.db)
             .filter(\.$email == userAuth.email)
@@ -168,7 +168,7 @@ struct UserController: RouteCollection {
 //            .set(\.$address.$id, to: addressId)
             .update()
         
-        let updatedUser = User.Connected(id: userAuth.id, firstname: receivedData.firstname, lastname: receivedData.lastname, email: userAuth.email, phoneNumber: receivedData.phoneNumber, gender: receivedData.gender, position: userAuth.position, missions: receivedData.missions, address: receivedData.address, token: token.value, isActive: userAuth.isActive)
+        let updatedUser = User.Connected(id: userAuth.id, firstname: receivedData.firstname, lastname: receivedData.lastname, email: userAuth.email, phoneNumber: receivedData.phoneNumber, gender: receivedData.gender, position: userAuth.position, missions: receivedData.missions, address: userAuth.address, token: token.value, isActive: userAuth.isActive)
         
         return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(updatedUser)))
     }
