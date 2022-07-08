@@ -175,11 +175,15 @@ struct UserController: RouteCollection {
     private func getList(req: Request) async throws -> Response {
         let users = try await User.query(on: req.db)
             .all()
-            .map {
-                return User.Informations(firstname: $0.firstname, lastname: $0.lastname, email: $0.email, phoneNumber: $0.phoneNumber, position: $0.position, gender: $0.gender, missions: $0.missions, address: $0.address)
-            }
+
+        var usersInformation: [User.Informations] = []
         
-        return Response(status: .ok, version: .http3, headersNoUpdate: HTTPHeaders(), body: .init(data: try JSONEncoder().encode(users)))
+        for user in users {
+            let address = try await addressController.getAddressFromId(user.$address.id, for: req)
+            usersInformation.append(User.Informations(firstname: user.firstname, lastname: user.lastname, email: user.email, phoneNumber: user.phoneNumber, position: user.position, gender: user.gender, missions: user.missions, address: address))
+        }
+
+        return Response(status: .ok, version: .http3, headersNoUpdate: HTTPHeaders(), body: .init(data: try JSONEncoder().encode(usersInformation)))
     }
     
     // MARK: Utilities functions
