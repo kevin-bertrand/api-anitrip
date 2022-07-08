@@ -27,8 +27,8 @@ struct TripController: RouteCollection {
         let receivedData = try req.content.decode(Trip.Create.self)
         
         guard let userId = userAuth.id,
-              let startingAddressId = try await addressController.create(receivedData.startingAddress, for: req),
-              let endingAddressId = try await addressController.create(receivedData.endingAddress, for: req)  else {
+              let startingAddressId = try await addressController.create(receivedData.startingAddress, for: req)?.id,
+              let endingAddressId = try await addressController.create(receivedData.endingAddress, for: req)?.id  else {
             throw Abort(.unauthorized)
         }
     
@@ -49,8 +49,8 @@ struct TripController: RouteCollection {
         let receivedData = try req.content.decode(Trip.self)
         
         guard let tripId = receivedData.id,
-              let startingAddressId = try await addressController.create(receivedData.startingAddress, for: req),
-              let endingAddressId = try await addressController.create(receivedData.endingAddress, for: req)  else {
+              let startingAddressId = try await addressController.create(receivedData.startingAddress, for: req)?.id,
+              let endingAddressId = try await addressController.create(receivedData.endingAddress, for: req)?.id  else {
             throw Abort(.unauthorized)
         }
         

@@ -17,7 +17,7 @@ struct AddressController: RouteCollection {
     
     
     // MARK: Utilities functions
-    func create(_ address: Address?, for req: Request) async throws -> UUID? {
+    func create(_ address: Address?, for req: Request) async throws -> Address? {
         guard let address = address else { return nil }
         
         if let addressId = try await checkIfAddressExists(address, for: req) {
@@ -29,12 +29,16 @@ struct AddressController: RouteCollection {
         return try await checkIfAddressExists(address, for: req)
     }
     
+    func getAddressFromId(_ id: UUID?, for req: Request) async throws -> Address? {
+        return try await Address.find(id, on: req.db)
+    }
+    
     /// Check if the address already exists
-    private func checkIfAddressExists(_ address: Address, for req: Request) async throws -> UUID? {        
+    private func checkIfAddressExists(_ address: Address, for req: Request) async throws -> Address? {
         return try await Address.query(on: req.db)
             .filter(\.$roadName == address.roadName)
             .filter(\.$streetNumber == address.streetNumber)
             .filter(\.$city == address.city)
-            .first()?.id
+            .first()
     }
 }
