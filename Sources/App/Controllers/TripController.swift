@@ -176,7 +176,7 @@ struct TripController: RouteCollection {
             }
         }
         
-        return Trip.ChartInfo(date: dateToFind, distance: totalDistance, numberOfTrip: 0)
+        return Trip.ChartInfo(date: dateToFind, distance: totalDistance, numberOfTrip: numberOfTrips)
     }
     
     /// Format date
