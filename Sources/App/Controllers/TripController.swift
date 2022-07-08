@@ -20,6 +20,7 @@ struct TripController: RouteCollection {
         tokenGroup.patch(use: update)
         tokenGroup.get(":userID", use: getList)
         tokenGroup.get("latest", ":userID", use: getThreeLatests)
+        tokenGroup.get("chart", ":userID", use: getLatestDistances)
     }
     
     // MARK: Routes functions
@@ -117,6 +118,24 @@ struct TripController: RouteCollection {
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(tripsInformation)))
     }
     
+    private func getLatestDistances(req: Request) async throws -> Response {
+        guard let userId = UUID(uuidString: req.parameters.get("userID") ?? "nul ") else {
+            throw Abort(.notFound)
+        }
+    
+        let trips = try await Trip.query(on: req.db)
+            .filter(\.$user.$id == userId)
+            .all()
+
+        var latestDistances: [Trip.ChartInfo] = []
+        
+        for day in 0...6 {
+            latestDistances.append(getDistanceForXDaysAgo(Double(day), trips: trips))
+        }
+        
+        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(latestDistances)))
+    }
+    
     // MARK: Utilities functions
     private func getUserAuthFor(_ req: Request) throws -> User {
         return try req.auth.require(User.self)
@@ -126,5 +145,35 @@ struct TripController: RouteCollection {
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/json")
         return headers
+    }
+    
+    private func getDistanceForXDaysAgo(_ days: Double, trips: [Trip]) -> Trip.ChartInfo {
+        var totalDistance: Double = 0.0
+        var dateToFind = ""
+        
+        if let date = getDate(with: days) {
+            dateToFind = date
+            for trip in trips {
+                if trip.date.contains(date) {
+                    totalDistance += trip.totalDistance
+                }
+            }
+        }
+        
+        return Trip.ChartInfo(date: dateToFind, distance: totalDistance)
+    }
+    
+    /// Format date
+    private func getDate(with deltaDay: Double) -> String? {
+        let today = Date.now
+        let dateToFormat = (today - (deltaDay * 86400))
+        let stringDate = dateToFormat.ISO8601Format()
+        var date: String?
+        
+        if let endDate = stringDate.firstIndex(of: "T") {
+            date = String(stringDate[..<endDate])
+        }
+        
+        return date
     }
 }

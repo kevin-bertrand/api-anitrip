@@ -26,4 +26,9 @@ extension Trip {
         let startingAddress: Address?
         let endingAddress: Address?
     }
+    
+    struct ChartInfo: Codable {
+        let date: String
+        let distance: Double
+    }
 }
