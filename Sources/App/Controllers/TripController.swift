@@ -22,6 +22,7 @@ struct TripController: RouteCollection {
         tokenGroup.get(":userID", use: getList)
         tokenGroup.get("latest", ":userID", use: getThreeLatests)
         tokenGroup.get("chart", ":userID", use: getLatestDistances)
+        tokenGroup.get("thisWeek", ":userID", use: getThisWeekInformations)
     }
     
     // MARK: Routes functions
@@ -123,8 +124,6 @@ struct TripController: RouteCollection {
         guard let userId = UUID(uuidString: req.parameters.get("userID") ?? "nul ") else {
             throw Abort(.notFound)
         }
-    
-        print(req)
         
         let trips = try await Trip.query(on: req.db)
             .filter(\.$user.$id == userId)
@@ -137,6 +136,18 @@ struct TripController: RouteCollection {
         }
         
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(latestDistances)))
+    }
+    
+    private func getThisWeekInformations(req: Request) async throws -> Response {
+        guard let userId = UUID(uuidString: req.parameters.get("userID") ?? "nul ") else {
+            throw Abort(.notFound)
+        }
+        
+        let trips = try await Trip.query(on: req.db)
+            .filter(\.$user.$id == userId)
+            .all()
+                
+        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(getSevenLastDaysDistance(for: trips))))
     }
     
     // MARK: Utilities functions
@@ -153,21 +164,37 @@ struct TripController: RouteCollection {
     private func getDistanceForXDaysAgo(_ days: Double, trips: [Trip]) -> Trip.ChartInfo {
         var totalDistance: Double = 0.0
         var dateToFind = ""
+        var numberOfTrips = 0
         
         if let date = getDate(with: days) {
             dateToFind = date
             for trip in trips {
                 if trip.date.contains(date) {
                     totalDistance += trip.totalDistance
+                    numberOfTrips += 1
                 }
             }
         }
         
-        return Trip.ChartInfo(date: dateToFind, distance: totalDistance)
+        return Trip.ChartInfo(date: dateToFind, distance: totalDistance, numberOfTrip: 0)
     }
     
     /// Format date
     private func getDate(with deltaDay: Double) -> String? {
         return Date().getFormattedDateWithDelta(format: "yyyy-MM-dd", delta: deltaDay)
+    }
+    
+    /// Getting total distance for the last 7 days
+    private func getSevenLastDaysDistance(for trips: [Trip]) -> Trip.ThisWeekInfo {
+        var totalDistance = 0.0
+        var numberOfTrips = 0
+        
+        for day in 0...6 {
+            let informations = getDistanceForXDaysAgo(Double(day), trips: trips)
+            totalDistance += informations.distance
+            numberOfTrips += informations.numberOfTrip
+        }
+        
+        return .init(distance: totalDistance, numberOfTrip: numberOfTrips)
     }
 }

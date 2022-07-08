@@ -30,5 +30,11 @@ extension Trip {
     struct ChartInfo: Codable {
         let date: String
         let distance: Double
+        let numberOfTrip: Int
+    }
+    
+    struct ThisWeekInfo: Codable {
+        let distance: Double
+        let numberOfTrip: Int
     }
 }
