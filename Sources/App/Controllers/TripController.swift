@@ -76,7 +76,17 @@ struct TripController: RouteCollection {
             .filter(\.$user.$id == userId)
             .all()
         
-        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(trips)))
+        var tripsInformation: [Trip.Informations] = []
+        
+        for trip in trips {
+            let startingAddress = try await addressController.getAddressFromId(trip.$startingAddress.id, for: req)
+            let endingAddress = try await addressController.getAddressFromId(trip.$endingAddress.id, for: req)
+            
+            tripsInformation.append(Trip.Informations(id: trip.id, date: trip.date, missions: trip.missions, comment: trip.comment, totalDistance: trip.totalDistance, startingAddress: startingAddress, endingAddress: endingAddress))
+            
+        }
+        
+        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(tripsInformation)))
     }
     
     // MARK: Utilities functions

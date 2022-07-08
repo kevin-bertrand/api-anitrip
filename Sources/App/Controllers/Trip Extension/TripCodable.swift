@@ -16,4 +16,14 @@ extension Trip {
         let startingAddress: Address
         let endingAddress: Address
     }
+    
+    struct Informations: Codable {
+        let id: UUID?
+        let date: String
+        let missions: [String]
+        let comment: String?
+        let totalDistance: Double
+        let startingAddress: Address?
+        let endingAddress: Address?
+    }
 }
