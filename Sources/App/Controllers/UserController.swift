@@ -37,7 +37,7 @@ struct UserController: RouteCollection {
             throw Abort(.custom(code: 460, reasonPhrase: "Account not active"))
         }
         let token = try await generateToken(for: userAuth, in: req)
-        let userInformations = User.Connected(id: userAuth.id,
+        let userInformations = User.Informations(id: userAuth.id,
                                               firstname: userAuth.firstname,
                                               lastname: userAuth.lastname,
                                               email: userAuth.email,
@@ -166,7 +166,7 @@ struct UserController: RouteCollection {
             .set(\.$address.$id, to: address?.id)
             .update()
         
-        let updatedUser = User.Connected(id: userAuth.id, firstname: receivedData.firstname, lastname: receivedData.lastname, email: userAuth.email, phoneNumber: receivedData.phoneNumber, gender: receivedData.gender, position: userAuth.position, missions: receivedData.missions, address: address, token: token.value, isActive: userAuth.isActive)
+        let updatedUser = User.Informations(id: userAuth.id, firstname: receivedData.firstname, lastname: receivedData.lastname, email: userAuth.email, phoneNumber: receivedData.phoneNumber, gender: receivedData.gender, position: userAuth.position, missions: receivedData.missions, address: address, token: token.value, isActive: userAuth.isActive)
         
         return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(updatedUser)))
     }
@@ -180,7 +180,7 @@ struct UserController: RouteCollection {
         
         for user in users {
             let address = try await addressController.getAddressFromId(user.$address.id, for: req)
-            usersInformation.append(User.Informations(firstname: user.firstname, lastname: user.lastname, email: user.email, phoneNumber: user.phoneNumber, position: user.position, gender: user.gender, missions: user.missions, address: address))
+            usersInformation.append(User.Informations(id: user.id, firstname: user.firstname, lastname: user.lastname, email: user.email, phoneNumber: user.phoneNumber, gender: user.gender, position: user.position, missions: user.missions, address: address, token: "", isActive: user.isActive))
         }
 
         return Response(status: .ok, version: .http3, headersNoUpdate: HTTPHeaders(), body: .init(data: try JSONEncoder().encode(usersInformation)))

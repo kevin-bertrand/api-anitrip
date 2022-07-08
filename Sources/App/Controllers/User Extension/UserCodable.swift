@@ -8,7 +8,7 @@
 import Foundation
 
 extension User {
-    struct Connected: Codable {
+    struct Informations: Codable {
         let id: UUID?
         let firstname: String
         let lastname: String
@@ -42,16 +42,5 @@ extension User {
         let address: Address?
         let password: String?
         let passwordVerification: String?
-    }
-    
-    struct Informations: Codable {
-        let firstname: String
-        let lastname: String
-        let email: String
-        let phoneNumber: String
-        let position: Position
-        let gender: Gender
-        let missions: [String]
-        let address: Address?
     }
 }
