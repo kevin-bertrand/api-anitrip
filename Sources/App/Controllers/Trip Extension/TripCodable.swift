@@ -9,7 +9,7 @@ import Foundation
 
 extension Trip {
     struct Create: Codable {
-        let date: Date
+        let date: String
         let missions: [String]
         let comment: String?
         let totalDistance: Double

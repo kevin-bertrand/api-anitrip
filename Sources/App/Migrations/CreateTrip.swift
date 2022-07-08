@@ -13,7 +13,7 @@ struct CreateTrip: AsyncMigration {
     func prepare(on database: Database) async throws {
         try await database.schema(Trip.schema)
             .id()
-            .field("date", .datetime, .required)
+            .field("date", .string, .required)
             .field("missions", .array(of: .string), .required)
             .field("comment", .string)
             .field("total_distance", .double, .required)
