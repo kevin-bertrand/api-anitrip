@@ -19,6 +19,7 @@ struct TripController: RouteCollection {
         tokenGroup.post(use: add)
         tokenGroup.patch(use: update)
         tokenGroup.get(":userID", use: getList)
+        tokenGroup.get("latest", ":userID", use: getThreeLatests)
     }
     
     // MARK: Routes functions
@@ -84,6 +85,33 @@ struct TripController: RouteCollection {
             
             tripsInformation.append(Trip.Informations(id: trip.id, date: trip.date, missions: trip.missions, comment: trip.comment, totalDistance: trip.totalDistance, startingAddress: startingAddress, endingAddress: endingAddress))
             
+        }
+        
+        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(tripsInformation)))
+    }
+    
+    private func getThreeLatests(req: Request) async throws -> Response {
+        guard let userId = UUID(uuidString: req.parameters.get("userID") ?? "nul ") else {
+            throw Abort(.notFound)
+        }
+    
+        var trips = try await Trip.query(on: req.db)
+            .filter(\.$user.$id == userId)
+            .all()
+        
+        trips = trips.sorted { $0.date > $1.date }
+                
+        if trips.count > 3 {
+            trips = Array(trips[0...2])
+        }
+        
+        var tripsInformation: [Trip.Informations] = []
+        
+        for trip in trips {
+            let startingAddress = try await addressController.getAddressFromId(trip.$startingAddress.id, for: req)
+            let endingAddress = try await addressController.getAddressFromId(trip.$endingAddress.id, for: req)
+            
+            tripsInformation.append(Trip.Informations(id: trip.id, date: trip.date, missions: trip.missions, comment: trip.comment, totalDistance: trip.totalDistance, startingAddress: startingAddress, endingAddress: endingAddress))
         }
         
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(tripsInformation)))
