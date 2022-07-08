@@ -7,6 +7,7 @@
 
 import Fluent
 import Vapor
+import Foundation
 
 struct TripController: RouteCollection {
     // Properties
@@ -123,6 +124,8 @@ struct TripController: RouteCollection {
             throw Abort(.notFound)
         }
     
+        print(req)
+        
         let trips = try await Trip.query(on: req.db)
             .filter(\.$user.$id == userId)
             .all()
@@ -165,15 +168,6 @@ struct TripController: RouteCollection {
     
     /// Format date
     private func getDate(with deltaDay: Double) -> String? {
-        let today = Date.now
-        let dateToFormat = (today - (deltaDay * 86400))
-        let stringDate = dateToFormat.ISO8601Format()
-        var date: String?
-        
-        if let endDate = stringDate.firstIndex(of: "T") {
-            date = String(stringDate[..<endDate])
-        }
-        
-        return date
+        return Date().getFormattedDateWithDelta(format: "yyyy-MM-dd", delta: deltaDay)
     }
 }
