@@ -17,9 +17,6 @@ final class Address: Model, Content {
     var id: UUID?
     
     // Fields
-    @Field(key: "road_type")
-    var roadType: String
-    
     @Field(key: "road_name")
     var roadName: String
     
@@ -42,14 +39,14 @@ final class Address: Model, Content {
     init() {}
     
     init(id: UUID? = nil,
-         roadType: String,
          streetNumber: String,
+         roadName: String,
          complement: String?,
          zipCode: String,
          city: String,
          country: String) {
         self.id = id
-        self.roadName = roadType
+        self.roadName = roadName
         self.streetNumber = streetNumber
         self.complement = complement
         self.zipCode = zipCode

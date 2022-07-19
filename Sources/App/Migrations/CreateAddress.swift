@@ -13,7 +13,6 @@ struct CreateAddress: AsyncMigration {
     func prepare(on database: Database) async throws {
         try await database.schema(Address.schema)
             .id()
-            .field("road_type", .string, .required)
             .field("road_name", .string, .required)
             .field("street_number", .string, .required)
             .field("complement", .string)
