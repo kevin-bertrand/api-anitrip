@@ -22,6 +22,7 @@ struct UserController: RouteCollection {
         
         let tokenGroup = userGroup.grouped(UserToken.authenticator()).grouped(UserToken.guardMiddleware())
         tokenGroup.patch("activate", ":userEmail", use: activate)
+        tokenGroup.patch("desactivate", ":userEmail", use: desactivate)
         tokenGroup.patch("delete", ":userEmail", use: delete)
         tokenGroup.patch("position", use: updatePosition)
         tokenGroup.patch(use: update)
@@ -107,7 +108,26 @@ struct UserController: RouteCollection {
         try await User.query(on: req.db)
             .filter(\.$email == userEmailToDelete)
             .set(\.$isDeleted, to: true)
-            .set(\.$isActive, to: true)
+            .set(\.$isActive, to: false)
+            .update()
+        
+        return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .empty)
+    }
+    
+    /// Desactivate account
+    private func desactivate(req: Request) async throws -> Response {
+        guard (try req.auth.require(User.self)).position == .administrator else {
+            throw Abort(.unauthorized)
+        }
+        
+        guard let userEmailToDesactivate = req.parameters.get("userEmail"),
+              try await User.query(on: req.db).filter(\.$email == userEmailToDesactivate).all().count == 1 else {
+            throw Abort(.notFound)
+        }
+        
+        try await User.query(on: req.db)
+            .filter(\.$email == userEmailToDesactivate)
+            .set(\.$isActive, to: false)
             .update()
         
         return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .empty)
