@@ -19,6 +19,8 @@ struct CreateAddress: AsyncMigration {
             .field("zip_code", .string, .required)
             .field("city", .string, .required)
             .field("country", .string, .required)
+            .field("latitude", .double, .required)
+            .field("longitude", .double, .required)
             .create()
     }
     

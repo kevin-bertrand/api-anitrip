@@ -35,6 +35,12 @@ final class Address: Model, Content {
     @Field(key: "country")
     var country: String
     
+    @Field(key: "latitude")
+    var latitude: Double
+    
+    @Field(key: "longitude")
+    var longitude: Double
+    
     // Initialization functions
     init() {}
     
@@ -44,7 +50,9 @@ final class Address: Model, Content {
          complement: String?,
          zipCode: String,
          city: String,
-         country: String) {
+         country: String,
+         latitude: Double,
+         longitude: Double) {
         self.id = id
         self.roadName = roadName
         self.streetNumber = streetNumber
@@ -52,5 +60,7 @@ final class Address: Model, Content {
         self.zipCode = zipCode
         self.city = city
         self.country = country
+        self.latitude = latitude
+        self.longitude = longitude
     }
 }
