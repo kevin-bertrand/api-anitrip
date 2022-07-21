@@ -78,12 +78,16 @@ struct UserController: RouteCollection {
             body: "\(receivedData.email) want to create an account."
         )
         
-        let administrators = try await User.query(on: req.db)
+        let devicesArray = try await User.query(on: req.db)
             .filter(\.$position == .administrator)
             .all()
-        
-        for administrator in administrators {
-            for device in administrator.devices {
+            .map({ users in
+                try users.$devices.get(on: req.db)
+                    .wait()
+            })
+
+        for devices in devicesArray {
+            for device in devices {
                 _ = req.apns.send(alert, to: device.deviceId)
             }
         }
