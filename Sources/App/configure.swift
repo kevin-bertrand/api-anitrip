@@ -1,5 +1,4 @@
 import APNS
-import JWTKit
 import Fluent
 import FluentPostgresDriver
 import FluentSQLiteDriver
@@ -7,7 +6,9 @@ import Vapor
 
 // configures your application
 public func configure(_ app: Application) throws {
-    // Configure database
+    // uncomment to serve files from /Public folder
+    // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+
     if app.environment == .production {
         app.databases.use(.postgres(
             hostname: Environment.get("DATABASE_HOST") ?? "localhost",
@@ -21,7 +22,7 @@ public func configure(_ app: Application) throws {
     }
 
     // Cpnfigure APNS
-    app.apns.configuration = try .init(authenticationMethod: .jwt(key: .private(filePath: "/home/vapor/AuthKey_U6S3886NL3.p8"), keyIdentifier: JWKIdentifier(string: Environment.get("KEY_IDENTIFIER") ?? ""), teamIdentifier: Environment.get("TEAM_IDENTIFIER") ?? ""), topic: "com.desyntic.anitrip", environment: .sandbox)
+    app.apns.configuration = try .init(authenticationMethod: .jwt(key: .private(filePath: "/home/vapor/AuthKey_U6S3886NL3.p8"), keyIdentifier: Environment.get("KEY_IDENTIFIER"), teamIdentifier: Environment.get("TEAM_IDENTIFIER")), topic: "com.desyntic.anitrip", environment: .sandbox)
     
     // Migration
     app.migrations.add(CreateAddress())
