@@ -35,6 +35,7 @@ struct UserController: RouteCollection {
     /// Login function
     private func login(req: Request) async throws -> Response {
         let userAuth = try getUserAuthFor(req)
+        let receivedData = try req.content.decode(User.Login.self)
         guard userAuth.isActive else {
             throw Abort(.custom(code: 460, reasonPhrase: "Account not active"))
         }
@@ -50,6 +51,26 @@ struct UserController: RouteCollection {
                                               address: try await addressController.getAddressFromId(userAuth.$address.id, for: req),
                                               token: token.value,
                                               isActive: userAuth.isActive)
+        
+        let registerDeviceIdForUser = try await User.query(on: req.db)
+            .filter(\.$email == userInformations.email)
+            .first()
+        
+        var isAlreadyPresent = false
+        
+        if let devices = registerDeviceIdForUser?.devices {
+            for device in devices {
+                if device.deviceId == receivedData.deviceId {
+                    isAlreadyPresent = true
+                }
+            }
+        }
+        
+        if !isAlreadyPresent {
+            let newDevice = Device(deviceId: receivedData.deviceId, userID: registerDeviceIdForUser?.id ?? UUID())
+            try await newDevice.save(on: req.db)
+        }
+        
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(userInformations)))
     }
     
@@ -62,12 +83,19 @@ struct UserController: RouteCollection {
         try await User(email: receivedData.email, password: try Bcrypt.hash(receivedData.password)).save(on: req.db)
         
         let alert = APNSwiftAlert(
-            title: "New account",
-            subtitle: "Full moon sighting",
+            title: "New account request",
             body: "\(receivedData.email) want to create an account."
         )
         
-        _ = req.apns.send(alert, to: "")
+        let administrators = try await User.query(on: req.db)
+            .filter(\.$position == .administrator)
+            .all()
+        
+        for administrator in administrators {
+            for device in administrator.devices {
+                _ = req.apns.send(alert, to: device.deviceId)
+            }
+        }
         
         return .init(status: .created, headers: getDefaultHttpHeader(), body: .empty)
     }

@@ -50,6 +50,9 @@ final class User: Model, Content {
     @OptionalParent(key: "address_id")
     var address: Address?
     
+    @Children(for: \.$user)
+    var devices: [Device]
+    
     // Initialization functions
     init() {}
     

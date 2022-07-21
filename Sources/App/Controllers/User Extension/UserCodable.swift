@@ -43,4 +43,8 @@ extension User {
         let password: String?
         let passwordVerification: String?
     }
+    
+    struct Login: Codable {
+        let deviceId: String
+    }
 }
