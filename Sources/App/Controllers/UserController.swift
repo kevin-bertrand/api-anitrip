@@ -40,7 +40,7 @@ struct UserController: RouteCollection {
             throw Abort(.custom(code: 460, reasonPhrase: "Account not active"))
         }
         let token = try await generateToken(for: userAuth, in: req)
-        let userInformations = User.Informations(id: userAuth.id,
+        let userInformations = User.Informations(id: userAuth.id ?? UUID(),
                                               firstname: userAuth.firstname,
                                               lastname: userAuth.lastname,
                                               email: userAuth.email,
@@ -52,22 +52,13 @@ struct UserController: RouteCollection {
                                               token: token.value,
                                               isActive: userAuth.isActive)
         
-        let registerDeviceIdForUser = try await User.query(on: req.db)
-            .filter(\.$email == userInformations.email)
-            .first()
+        let userDevices = try await Device.query(on: req.db)
+            .filter(\.$user.$id == userInformations.id)
+            .filter(\.$deviceId == receivedData.deviceId)
+            .all()
         
-        var isAlreadyPresent = false
-        
-        if let devices = registerDeviceIdForUser?.devices {
-            for device in devices {
-                if device.deviceId == receivedData.deviceId {
-                    isAlreadyPresent = true
-                }
-            }
-        }
-        
-        if !isAlreadyPresent {
-            let newDevice = Device(deviceId: receivedData.deviceId, userID: registerDeviceIdForUser?.id ?? UUID())
+        if userDevices.count == 0 {
+            let newDevice = Device(deviceId: receivedData.deviceId, userID: userInformations.id)
             try await newDevice.save(on: req.db)
         }
         
@@ -224,7 +215,7 @@ struct UserController: RouteCollection {
             .set(\.$address.$id, to: address?.id)
             .update()
         
-        let updatedUser = User.Informations(id: userAuth.id, firstname: receivedData.firstname, lastname: receivedData.lastname, email: userAuth.email, phoneNumber: receivedData.phoneNumber, gender: receivedData.gender, position: userAuth.position, missions: receivedData.missions, address: address, token: token.value, isActive: userAuth.isActive)
+        let updatedUser = User.Informations(id: userAuth.id ?? UUID(), firstname: receivedData.firstname, lastname: receivedData.lastname, email: userAuth.email, phoneNumber: receivedData.phoneNumber, gender: receivedData.gender, position: userAuth.position, missions: receivedData.missions, address: address, token: token.value, isActive: userAuth.isActive)
         
         return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(updatedUser)))
     }
@@ -238,7 +229,7 @@ struct UserController: RouteCollection {
         
         for user in users {
             let address = try await addressController.getAddressFromId(user.$address.id, for: req)
-            usersInformation.append(User.Informations(id: user.id, firstname: user.firstname, lastname: user.lastname, email: user.email, phoneNumber: user.phoneNumber, gender: user.gender, position: user.position, missions: user.missions, address: address, token: "", isActive: user.isActive))
+            usersInformation.append(User.Informations(id: user.id ?? UUID(), firstname: user.firstname, lastname: user.lastname, email: user.email, phoneNumber: user.phoneNumber, gender: user.gender, position: user.position, missions: user.missions, address: address, token: "", isActive: user.isActive))
         }
 
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(usersInformation)))

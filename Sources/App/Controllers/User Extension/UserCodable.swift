@@ -9,7 +9,7 @@ import Foundation
 
 extension User {
     struct Informations: Codable {
-        let id: UUID?
+        let id: UUID
         let firstname: String
         let lastname: String
         let email: String
