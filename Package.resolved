@@ -1,6 +1,24 @@
 {
   "pins" : [
     {
+      "identity" : "apns",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/vapor/apns.git",
+      "state" : {
+        "revision" : "0eff8eee62001cff9ee21853a4357777ddc523b6",
+        "version" : "3.0.0"
+      }
+    },
+    {
+      "identity" : "apnswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swift-server-community/APNSwift.git",
+      "state" : {
+        "revision" : "99a3c7bb5fd211009438fb386d18c94bb2f63b17",
+        "version" : "4.0.0"
+      }
+    },
+    {
       "identity" : "async-http-client",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swift-server/async-http-client.git",
@@ -61,6 +79,15 @@
       "state" : {
         "revision" : "9439661820e547abc1807121cb3d3482447239a5",
         "version" : "4.2.0"
+      }
+    },
+    {
+      "identity" : "jwt-kit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/vapor/jwt-kit.git",
+      "state" : {
+        "revision" : "aa7d9cd805b10c1ca17dfc53062ffbc695469cf4",
+        "version" : "4.6.1"
       }
     },
     {

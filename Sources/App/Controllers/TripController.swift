@@ -72,8 +72,14 @@ struct TripController: RouteCollection {
     }
     
     private func getList(req: Request) async throws -> Response {
+        let userAuth = try getUserAuthFor(req)
+        
         guard let userId = UUID(uuidString: req.parameters.get("userID") ?? "nul ") else {
             throw Abort(.notFound)
+        }
+        
+        guard userAuth.position == .administrator || userAuth.id == userId else {
+            throw Abort(.unauthorized)
         }
         
         let trips = try await Trip.query(on: req.db)

@@ -5,6 +5,7 @@
 //  Created by Kevin Bertrand on 01/07/2022.
 //
 
+import APNS
 import Fluent
 import Vapor
 
@@ -59,6 +60,15 @@ struct UserController: RouteCollection {
             throw Abort(.notAcceptable)
         }
         try await User(email: receivedData.email, password: try Bcrypt.hash(receivedData.password)).save(on: req.db)
+        
+        let alert = APNSwiftAlert(
+            title: "New account",
+            subtitle: "Full moon sighting",
+            body: "\(receivedData.email) want to create an account."
+        )
+        
+        _ = req.apns.send(alert, to: "")
+        
         return .init(status: .created, headers: getDefaultHttpHeader(), body: .empty)
     }
     

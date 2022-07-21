@@ -1,3 +1,4 @@
+import APNS
 import Fluent
 import FluentPostgresDriver
 import FluentSQLiteDriver
@@ -20,6 +21,9 @@ public func configure(_ app: Application) throws {
         app.databases.use(.sqlite(.file("db.sqlite")), as: .sqlite)
     }
 
+    // Cpnfigure APNS
+    app.apns.configuration = try .init(authenticationMethod: .jwt(key: .private(filePath: "/home/vapor/AuthKey_U6S3886NL3.p8"), keyIdentifier: "U6S3886NL3", teamIdentifier: ""), topic: "com.desyntic.anitrip", environment: .sandbox)
+    
     // Migration
     app.migrations.add(CreateAddress())
     app.migrations.add(CreateUser())
