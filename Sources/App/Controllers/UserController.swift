@@ -75,6 +75,7 @@ struct UserController: RouteCollection {
         
         let alert = APNSwiftAlert(
             title: "New account request",
+            subtitle: "\(receivedData.email)",
             body: "\(receivedData.email) want to create an account."
         )
         
