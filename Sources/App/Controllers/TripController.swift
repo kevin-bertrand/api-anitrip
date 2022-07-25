@@ -217,15 +217,20 @@ struct TripController: RouteCollection {
     private func getDistanceForXMonthAgo(_ delta: Int, trips: [Trip]) -> Trip.ChartInfo {
         var totalDistance: Double = 0.0
         var numberOfTrips = 0
-        let monthToFind =  Calendar.current.component(.month, from: Date()) - delta
-        var year = 0
+        var monthToFind =  Calendar.current.component(.month, from: Date()) - delta
+        var year = Calendar.current.component(.year, from: Date())
+        
+        if monthToFind <= 0 {
+            monthToFind = 12 + 0
+            year = year - 1
+        }
+        
     
         for trip in trips {
             if let tripDate = trip.date.toDate,
                Calendar.current.component(.month, from: tripDate) == monthToFind {
                 totalDistance += trip.totalDistance
                 numberOfTrips += 1
-                year = Calendar.current.component(.year, from: tripDate)
             }
         }
         
