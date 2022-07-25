@@ -221,7 +221,7 @@ struct TripController: RouteCollection {
         var year = Calendar.current.component(.year, from: Date())
         
         if monthToFind <= 0 {
-            monthToFind = 12 + 0
+            monthToFind = 12 + monthToFind
             year = year - 1
         }
         
