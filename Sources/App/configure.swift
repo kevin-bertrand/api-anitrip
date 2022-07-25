@@ -3,6 +3,8 @@ import JWTKit
 import Fluent
 import FluentPostgresDriver
 import FluentSQLiteDriver
+import Queues
+import QueuesRedisDriver
 import Vapor
 
 // configures your application
@@ -24,6 +26,15 @@ public func configure(_ app: Application) throws {
 
     // Cpnfigure APNS
     app.apns.configuration = try .init(authenticationMethod: .jwt(key: .private(filePath: Environment.get("FILE_PATH") ?? ""), keyIdentifier: JWKIdentifier(string: Environment.get("KEY_IDENTIFIER") ?? ""), teamIdentifier: Environment.get("TEAM_IDENTIFIER") ?? ""), topic: "com.desyntic.anitrip", environment: .sandbox)
+
+    // Configure Redis
+    try app.queues.use(.redis(url: "redis://127.0.0.1:6379"))
+    
+    //Register jobs
+    let emailJob = EmailJob()
+    app.queues.add(emailJob)
+    
+    try app.queues.startInProcessJobs(on: .default)
     
     // Migration
     app.migrations.add(CreateAddress())
@@ -34,4 +45,21 @@ public func configure(_ app: Application) throws {
     
     // register routes
     try routes(app)
+}
+
+struct Email: Codable {
+    let to: String
+    let message: String
+}
+
+struct EmailJob: AsyncJob {
+    typealias Payload = Email
+
+    func dequeue(_ context: QueueContext, _ payload: Email) async throws {
+        // This is where you would send the email
+    }
+
+    func error(_ context: QueueContext, _ error: Error, _ payload: Email) async throws {
+        // If you don't want to handle errors you can simply return. You can also omit this function entirely.
+    }
 }

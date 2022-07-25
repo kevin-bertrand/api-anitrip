@@ -112,6 +112,8 @@ struct UserController: RouteCollection {
             .set(\.$isActive, to: true)
             .update()
         
+        try await req.queue.dispatch(EmailJob.self, .init(to: userEmailToActivate, message: "Your account is now activate!"))
+        
         return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .empty)
     }
     
