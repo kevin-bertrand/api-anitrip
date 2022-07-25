@@ -21,7 +21,7 @@ struct TripController: RouteCollection {
         tokenGroup.patch(use: update)
         tokenGroup.get(":userID", use: getList)
         tokenGroup.get("latest", ":userID", use: getThreeLatests)
-        tokenGroup.get("chart", ":userID", use: getLatestDistances)
+        tokenGroup.get("chart", ":filter", ":userID", use: getChartPoint)
         tokenGroup.get("thisWeek", ":userID", use: getThisWeekInformations)
     }
     
@@ -126,8 +126,9 @@ struct TripController: RouteCollection {
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(tripsInformation)))
     }
     
-    private func getLatestDistances(req: Request) async throws -> Response {
-        guard let userId = UUID(uuidString: req.parameters.get("userID") ?? "nul ") else {
+    private func getChartPoint(req: Request) async throws -> Response {
+        guard let userId = UUID(uuidString: req.parameters.get("userID") ?? "nul"),
+              let filter = req.parameters.get("filter") else {
             throw Abort(.notFound)
         }
         
@@ -137,8 +138,20 @@ struct TripController: RouteCollection {
 
         var latestDistances: [Trip.ChartInfo] = []
         
-        for day in 0...6 {
-            latestDistances.append(getDistanceForXDaysAgo(Double(day), trips: trips))
+        if filter == "week" {
+            for day in 0...6 {
+                latestDistances.append(getDistanceForXDaysAgo(Double(day), trips: trips))
+            }
+        } else if filter == "month" {
+            for week in 0...3 {
+                latestDistances.append(getDistanceForXWeekAgo(week, trips: trips))
+            }
+        } else if filter == "year" {
+            for month in 0...11 {
+                latestDistances.append(getDistanceForXMonthAgo(month, trips: trips))
+            }
+        } else {
+            throw Abort(.notFound)
         }
         
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(latestDistances)))
@@ -183,6 +196,40 @@ struct TripController: RouteCollection {
         }
         
         return Trip.ChartInfo(date: dateToFind, distance: totalDistance, numberOfTrip: numberOfTrips)
+    }
+    
+    private func getDistanceForXWeekAgo(_ delta: Int, trips: [Trip]) -> Trip.ChartInfo {
+        var totalDistance: Double = 0.0
+        var numberOfTrips = 0
+        let weekNumberToFind =  Calendar.current.component(.weekOfYear, from: Date()) - delta
+    
+        for trip in trips {
+            if let tripDate = trip.date.toDate,
+               Calendar.current.component(.weekOfYear, from: tripDate) == weekNumberToFind {
+                totalDistance += trip.totalDistance
+                numberOfTrips += 1
+            }
+        }
+        
+        return Trip.ChartInfo(date: "Week \(weekNumberToFind)", distance: totalDistance, numberOfTrip: numberOfTrips)
+    }
+    
+    private func getDistanceForXMonthAgo(_ delta: Int, trips: [Trip]) -> Trip.ChartInfo {
+        var totalDistance: Double = 0.0
+        var numberOfTrips = 0
+        let monthToFind =  Calendar.current.component(.month, from: Date()) - delta
+        var year = 0
+    
+        for trip in trips {
+            if let tripDate = trip.date.toDate,
+               Calendar.current.component(.month, from: tripDate) == monthToFind {
+                totalDistance += trip.totalDistance
+                numberOfTrips += 1
+                year = Calendar.current.component(.year, from: tripDate)
+            }
+        }
+        
+        return Trip.ChartInfo(date: "\(monthToFind)/\(year)", distance: totalDistance, numberOfTrip: numberOfTrips)
     }
     
     /// Format date
