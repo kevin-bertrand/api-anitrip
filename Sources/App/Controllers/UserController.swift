@@ -251,7 +251,6 @@ struct UserController: RouteCollection {
     /// Update user profile picture
     private func updatePicture(req: Request) async throws -> Response {
         let file = try req.content.decode(File.self)
-        
         guard let fileExtension = file.extension else { throw Abort(.badRequest)}
         
         let userAuth = try getUserAuthFor(req)
@@ -260,11 +259,13 @@ struct UserController: RouteCollection {
             let path = req.application.directory.publicDirectory + "\(userId)" + fileExtension
             try await req.fileio.writeFile(file.data, at: path)
             
+            
             try await User.query(on: req.db)
                 .filter(\.$email == userAuth.email)
                 .set(\.$imagePath, to: path)
                 .update()
         }
+        
         return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .empty)
     }
     
