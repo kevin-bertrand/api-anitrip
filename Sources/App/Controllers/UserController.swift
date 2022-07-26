@@ -113,7 +113,7 @@ struct UserController: RouteCollection {
             .set(\.$isActive, to: true)
             .update()
     
-        let message = MailgunMessage(from: "no-reply@desyntic.com",
+        let message = MailgunMessage(from: "postmaster@desyntic.com",
                                      to: userEmailToActivate,
                                      subject: "Account activation",
                                      text: """

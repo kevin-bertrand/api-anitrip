@@ -30,9 +30,10 @@ public func configure(_ app: Application) throws {
     app.mailgun.configuration = .environment
     app.mailgun.defaultDomain = .myApp
     
-    app.mailgun(.myApp).send(MailgunMessage(from: "no-reply@desyntic.com", to: "k.bertrand@desyntic.com", subject: "Server is started", text: "The server has started!")).whenSuccess { response in
-        print("Just send: \(response)")
-    }
+    app.mailgun(.myApp).send(MailgunMessage(from: "postmaster@desyntic.com", to: "k.bertrand@desyntic.com", subject: "Server is started", text: "The server has started!"))
+        .whenComplete({ result in
+            print(result)
+        })
     
     // Migration
     app.migrations.add(CreateAddress())
