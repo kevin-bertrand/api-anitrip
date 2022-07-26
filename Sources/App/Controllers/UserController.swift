@@ -7,6 +7,7 @@
 
 import APNS
 import Fluent
+import Mailgun
 import Vapor
 
 struct UserController: RouteCollection {
@@ -111,8 +112,27 @@ struct UserController: RouteCollection {
             .filter(\.$email == userEmailToActivate)
             .set(\.$isActive, to: true)
             .update()
+    
+        let message = MailgunMessage(from: "no-reply@desyntic.com",
+                                     to: userEmailToActivate,
+                                     subject: "Account activation",
+                                     text: """
+                                     Dear \(userEmailToActivate),
+                                     
+                                     Your account is now activate!
+                                     Go to the application to connect with your email and your password.
+                                     
+                                     Don't forget to fill your profile with your personnal informations!
+                                     
+                                     Regards.
+                                     
+                                     -----------------------------------------------
+                                     This is an automatic email, do not reply!
+                                     """)
         
-        try await req.queue.dispatch(EmailJob.self, .init(to: userEmailToActivate, message: "Your account is now activate!"))
+        _ = req.mailgun().send(message).map { _ in
+            return true
+        }
         
         return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .empty)
     }

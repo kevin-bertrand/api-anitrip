@@ -15,6 +15,7 @@ let package = Package(
         .package(url: "https://github.com/vapor/apns.git", from: "3.0.0"),
         .package(url: "https://github.com/vapor/redis.git", from: "4.0.0"),
         .package(url: "https://github.com/vapor/queues-redis-driver.git", from: "1.0.0"),
+        .package(url: "https://github.com/vapor-community/mailgun.git", from: "5.0.0")
     ],
     targets: [
         .target(
@@ -26,7 +27,8 @@ let package = Package(
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "APNS", package: "apns"),
                 .product(name: "Redis", package: "redis"),
-                .product(name: "QueuesRedisDriver", package: "queues-redis-driver")
+                .product(name: "QueuesRedisDriver", package: "queues-redis-driver"),
+                .product(name: "Mailgun", package: "mailgun")
             ],
             swiftSettings: [
                 // Enable better optimizations when building in Release configuration. Despite the use of
