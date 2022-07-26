@@ -256,7 +256,7 @@ struct UserController: RouteCollection {
         let userAuth = try getUserAuthFor(req)
         
         if let userId = userAuth.id {
-            let path =  "/AniTrip/Public/\(userId)." + fileExtension
+            let path =  "/var/www/html/AniTrip/Public/\(userId)." + fileExtension
             try await req.fileio.writeFile(file.data, at: path)
             
             
