@@ -4,6 +4,7 @@ import Fluent
 import FluentPostgresDriver
 import FluentSQLiteDriver
 import Mailgun
+import Queues
 import Vapor
 
 // configures your application
@@ -29,6 +30,10 @@ public func configure(_ app: Application) throws {
     // Configure MailGun
     app.mailgun.configuration = .environment
     app.mailgun.defaultDomain = .myApp
+    
+    app.mailgun(.myApp).send(MailgunMessage(from: "no-reply@desyntic.com", to: "k.bertrand@desyntic.com", subject: "Server is started", text: "The server has started!")).whenSuccess { response in
+        print("Just send: \(response)")
+    }
     
     // Migration
     app.migrations.add(CreateAddress())
