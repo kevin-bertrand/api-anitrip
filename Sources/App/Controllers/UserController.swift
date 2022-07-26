@@ -14,7 +14,6 @@ struct UserController: RouteCollection {
     // Properties
     var addressController: AddressController
     
-    
     func boot(routes: RoutesBuilder) throws {
         let userGroup = routes.grouped("user")
         userGroup.post("create", use: create)
@@ -41,17 +40,18 @@ struct UserController: RouteCollection {
             throw Abort(.custom(code: 460, reasonPhrase: "Account not active"))
         }
         let token = try await generateToken(for: userAuth, in: req)
-        let userInformations = User.Informations(id: userAuth.id ?? UUID(),
-                                              firstname: userAuth.firstname,
-                                              lastname: userAuth.lastname,
-                                              email: userAuth.email,
-                                              phoneNumber: userAuth.phoneNumber,
-                                              gender: userAuth.gender,
-                                              position: userAuth.position,
-                                              missions: userAuth.missions,
-                                              address: try await addressController.getAddressFromId(userAuth.$address.id, for: req),
-                                              token: token.value,
-                                              isActive: userAuth.isActive)
+        let userInformations = User.Informations(imagePath: userAuth.imagePath,
+                                                 id: userAuth.id ?? UUID(),
+                                                 firstname: userAuth.firstname,
+                                                 lastname: userAuth.lastname,
+                                                 email: userAuth.email,
+                                                 phoneNumber: userAuth.phoneNumber,
+                                                 gender: userAuth.gender,
+                                                 position: userAuth.position,
+                                                 missions: userAuth.missions,
+                                                 address: try await addressController.getAddressFromId(userAuth.$address.id, for: req),
+                                                 token: token.value,
+                                                 isActive: userAuth.isActive)
         
         let userDevices = try await Device.query(on: req.db)
             .filter(\.$user.$id == userInformations.id)
@@ -242,9 +242,29 @@ struct UserController: RouteCollection {
             .set(\.$address.$id, to: address?.id)
             .update()
         
-        let updatedUser = User.Informations(id: userAuth.id ?? UUID(), firstname: receivedData.firstname, lastname: receivedData.lastname, email: userAuth.email, phoneNumber: receivedData.phoneNumber, gender: receivedData.gender, position: userAuth.position, missions: receivedData.missions, address: address, token: token.value, isActive: userAuth.isActive)
+        let updatedUser = User.Informations(imagePath: userAuth.imagePath, id: userAuth.id ?? UUID(), firstname: receivedData.firstname, lastname: receivedData.lastname, email: userAuth.email, phoneNumber: receivedData.phoneNumber, gender: receivedData.gender, position: userAuth.position, missions: receivedData.missions, address: address, token: token.value, isActive: userAuth.isActive)
         
         return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(updatedUser)))
+    }
+    
+    /// Update user profile picture
+    private func updatePicture(req: Request) async throws -> Response {
+        let file = try req.content.decode(File.self)
+        
+        guard let fileExtension = file.extension else { throw Abort(.badRequest)}
+        
+        let userAuth = try getUserAuthFor(req)
+        
+        if let userId = userAuth.id {
+            let path = req.application.directory.publicDirectory + "\(userId)" + fileExtension
+            try await req.fileio.writeFile(file.data, at: path)
+            
+            try await User.query(on: req.db)
+                .filter(\.$email == userAuth.email)
+                .set(\.$imagePath, to: path)
+                .update()
+        }
+        return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .empty)
     }
     
     /// Getting the user list
@@ -256,7 +276,7 @@ struct UserController: RouteCollection {
         
         for user in users {
             let address = try await addressController.getAddressFromId(user.$address.id, for: req)
-            usersInformation.append(User.Informations(id: user.id ?? UUID(), firstname: user.firstname, lastname: user.lastname, email: user.email, phoneNumber: user.phoneNumber, gender: user.gender, position: user.position, missions: user.missions, address: address, token: "", isActive: user.isActive))
+            usersInformation.append(User.Informations(imagePath: user.imagePath, id: user.id ?? UUID(), firstname: user.firstname, lastname: user.lastname, email: user.email, phoneNumber: user.phoneNumber, gender: user.gender, position: user.position, missions: user.missions, address: address, token: "", isActive: user.isActive))
         }
 
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(usersInformation)))

@@ -24,6 +24,7 @@ struct CreateUser: AsyncMigration {
         
         try await database.schema(User.schema)
             .id()
+            .field("img", .string)
             .field("firstname", .string, .required)
             .field("lastname", .string, .required)
             .field("email", .string, .required)

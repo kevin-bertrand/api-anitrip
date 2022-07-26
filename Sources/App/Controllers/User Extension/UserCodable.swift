@@ -9,6 +9,7 @@ import Foundation
 
 extension User {
     struct Informations: Codable {
+        let imagePath: String?
         let id: UUID
         let firstname: String
         let lastname: String

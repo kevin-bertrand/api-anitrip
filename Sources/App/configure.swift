@@ -8,8 +8,11 @@ import Vapor
 
 // configures your application
 public func configure(_ app: Application) throws {
-    // uncomment to serve files from /Public folder
-    // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+    /// config max upload file size
+    app.routes.defaultMaxBodySize = "10mb"
+    
+    // setup public file middleware (for hosting our uploaded files)
+     app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
     if app.environment == .production {
         app.databases.use(.postgres(

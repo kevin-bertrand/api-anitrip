@@ -17,6 +17,9 @@ final class User: Model, Content {
     var id: UUID?
     
     // Fields
+    @OptionalField(key: "img")
+    var imagePath: String?
+    
     @Field(key: "firstname")
     var firstname: String
     
@@ -59,6 +62,7 @@ final class User: Model, Content {
     init(id: UUID? = nil,
          email: String,
          password: String) {
+        self.imagePath = nil
         self.id = id
         self.firstname = ""
         self.lastname = ""
