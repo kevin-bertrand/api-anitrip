@@ -4,8 +4,6 @@ import Fluent
 import FluentPostgresDriver
 import FluentSQLiteDriver
 import Mailgun
-import Queues
-import QueuesRedisDriver
 import Vapor
 
 // configures your application
