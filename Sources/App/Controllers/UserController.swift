@@ -26,6 +26,7 @@ struct UserController: RouteCollection {
         tokenGroup.patch("desactivate", ":userEmail", use: desactivate)
         tokenGroup.patch("delete", ":userEmail", use: delete)
         tokenGroup.patch("position", use: updatePosition)
+        tokenGroup.patch("picture", use: updatePicture)
         tokenGroup.patch(use: update)
         tokenGroup.get(use: getList)
         tokenGroup.get("toActivate", use: getToActivateAccount)
