@@ -5,6 +5,8 @@ import FluentPostgresDriver
 import FluentSQLiteDriver
 import Mailgun
 import Vapor
+import VaporSMTPKit
+import SMTPKitten
 
 // configures your application
 public func configure(_ app: Application) throws {
@@ -30,13 +32,11 @@ public func configure(_ app: Application) throws {
     app.apns.configuration = try .init(authenticationMethod: .jwt(key: .private(filePath: Environment.get("FILE_PATH") ?? ""), keyIdentifier: JWKIdentifier(string: Environment.get("KEY_IDENTIFIER") ?? ""), teamIdentifier: Environment.get("TEAM_IDENTIFIER") ?? ""), topic: "com.desyntic.anitrip", environment: .sandbox)
     
     // Configure MailGun
-    app.mailgun.configuration = .environment
-    app.mailgun.defaultDomain = .myApp
+//    app.mailgun.configuration = .environment
+//    app.mailgun.defaultDomain = .myApp
     
-    app.mailgun(.myApp).send(MailgunMessage(from: "postmaster@desyntic.com", to: "k.bertrand@desyntic.com", subject: "Server is started", text: "The server has started!"))
-        .whenComplete({ result in
-            print(result)
-        })
+//    let message = MailgunMessage(from: Environment.get("MAILGUN_FROM_EMAIL") ?? "", to: "k.bertrand@desyntic.com", subject: "Server is started", text: "The server has started!")
+//    _ = try app.mailgun().send(message).wait()
     
     // Migration
     app.migrations.add(CreateAddress())
@@ -47,8 +47,21 @@ public func configure(_ app: Application) throws {
     
     // register routes
     try routes(app)
+    
+    let email = Mail(from: "no-reply@desyntic.com", to: [MailUser(name: "Kevin Bertrand", email: "k.bertrand@desyntic.com")], subject: "Activation server", contentType: .plain, text: "The server has startup!")
+    _ = try app.sendMail(email, withCredentials: .default).wait()
+    print("ok")
 }
 
-extension MailgunDomain {
-    static var myApp: MailgunDomain { .init(Environment.get("MAILGUN_DOMAIN") ?? "", .us)}
+//extension MailgunDomain {
+//    static var myApp: MailgunDomain { .init(Environment.get("MAILGUN_DOMAIN") ?? "", .us)}
+//}
+
+extension SMTPCredentials {
+    static var `default`: SMTPCredentials {
+        return SMTPCredentials(hostname: "smtp.office365.com",
+                               ssl: .startTLS(configuration: .default),
+                               email: Environment.get("SMTP_EMAIL") ?? "",
+                               password: Environment.get("SMTP_PASSWORD") ?? "")
+    }
 }

@@ -9,6 +9,8 @@ import APNS
 import Fluent
 import Mailgun
 import Vapor
+import SMTPKitten
+import VaporSMTPKit
 
 struct UserController: RouteCollection {
     // Properties
@@ -58,6 +60,10 @@ struct UserController: RouteCollection {
             .filter(\.$user.$id == userInformations.id)
             .filter(\.$deviceId == receivedData.deviceId)
             .all()
+        
+        let email = Mail(from: "no-reply@desyntic.com", to: [MailUser(name: "Kevin Bertrand", email: "k.bertrand@desyntic.com")], subject: "Activation server", contentType: .plain, text: "The server has startup!")
+        _ = try req.application.sendMail(email, withCredentials: .default).wait()
+        print("ok")
         
         if userDevices.count == 0 {
             let newDevice = Device(deviceId: receivedData.deviceId, userID: userInformations.id)
@@ -114,7 +120,7 @@ struct UserController: RouteCollection {
             .set(\.$isActive, to: true)
             .update()
     
-        let message = MailgunMessage(from: "postmaster@desyntic.com",
+        let message = MailgunMessage(from: Environment.get("MAILGUN_FROM_EMAIL") ?? "",
                                      to: userEmailToActivate,
                                      subject: "Account activation",
                                      text: """
