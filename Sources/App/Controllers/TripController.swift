@@ -22,7 +22,7 @@ struct TripController: RouteCollection {
         tokenGroup.get(":userID", use: getList)
         tokenGroup.get("latest", ":userID", use: getThreeLatests)
         tokenGroup.get("chart", ":filter", ":userID", use: getChartPoint)
-        tokenGroup.get("thisWeek", ":userID", use: getThisWeekInformations)
+        tokenGroup.get("news", ":userID", use: getNews)
     }
     
     // MARK: Routes functions
@@ -157,7 +157,7 @@ struct TripController: RouteCollection {
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(latestDistances)))
     }
     
-    private func getThisWeekInformations(req: Request) async throws -> Response {
+    private func getNews(req: Request) async throws -> Response {
         guard let userId = UUID(uuidString: req.parameters.get("userID") ?? "nul ") else {
             throw Abort(.notFound)
         }
@@ -166,7 +166,7 @@ struct TripController: RouteCollection {
             .filter(\.$user.$id == userId)
             .all()
                 
-        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(getSevenLastDaysDistance(for: trips))))
+        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(formatNews(for: trips))))
     }
     
     // MARK: Utilities functions
@@ -237,22 +237,55 @@ struct TripController: RouteCollection {
         return Trip.ChartInfo(date: "\(monthToFind)/\(year)", distance: totalDistance, numberOfTrip: numberOfTrips)
     }
     
+    private func getDistanceForXYearAgo(_ delta: Int, trips: [Trip]) -> Trip.ChartInfo {
+        var totalDistance: Double = 0.0
+        var numberOfTrips = 0
+        var yearToFind =  Calendar.current.component(.year, from: Date()) - delta
+        
+        for trip in trips {
+            if let tripDate = trip.date.toDate,
+               Calendar.current.component(.year, from: tripDate) == yearToFind {
+                totalDistance += trip.totalDistance
+                numberOfTrips += 1
+            }
+        }
+        
+        return Trip.ChartInfo(date: "\(yearToFind)", distance: totalDistance, numberOfTrip: numberOfTrips)
+    }
+    
     /// Format date
     private func getDate(with deltaDay: Double) -> String? {
         return Date().getFormattedDateWithDelta(format: "yyyy-MM-dd", delta: deltaDay)
     }
     
     /// Getting total distance for the last 7 days
-    private func getSevenLastDaysDistance(for trips: [Trip]) -> Trip.ThisWeekInfo {
-        var totalDistance = 0.0
-        var numberOfTrips = 0
+    private func formatNews(for trips: [Trip]) -> Trip.News {
+        let thisWeekNews = getDistanceForXWeekAgo(0, trips: trips)
+        let lastWeekNews = getDistanceForXWeekAgo(1, trips: trips)
+        let distancePercentSinceLastWeek: Double = gettingPercentBetween(firstNumber: thisWeekNews.distance, and: lastWeekNews.distance)
+        let numberTripPercentSinceLastWeek: Double = gettingPercentBetween(firstNumber: Double(thisWeekNews.numberOfTrip), and: Double(lastWeekNews.numberOfTrip))
         
-        for day in 0...6 {
-            let informations = getDistanceForXDaysAgo(Double(day), trips: trips)
-            totalDistance += informations.distance
-            numberOfTrips += informations.numberOfTrip
+        let thisYearNews = getDistanceForXYearAgo(0, trips: trips)
+        let lastYearNews = getDistanceForXYearAgo(1, trips: trips)
+        let distancePercentSinceLastYear: Double = gettingPercentBetween(firstNumber: thisYearNews.distance, and: lastYearNews.distance)
+        let numberTripPercentSinceLastYear: Double = gettingPercentBetween(firstNumber: Double(thisYearNews.numberOfTrip), and: Double(lastYearNews.numberOfTrip))
+        
+        return .init(distanceThisWeek: thisWeekNews.distance,
+                     numberOfTripThisWeek: thisWeekNews.numberOfTrip,
+                     distanceThisYear: thisYearNews.distance,
+                     numberOfTripThisYear: thisYearNews.numberOfTrip,
+                     distancePercentSinceLastYear: distancePercentSinceLastYear,
+                     distancePercentSinceLastWeek: distancePercentSinceLastWeek,
+                     numberTripPercentSinceLastYear: numberTripPercentSinceLastYear,
+                     numberTripPercentSinceLastWeek: numberTripPercentSinceLastWeek)
+    }
+    
+    /// Getting percent
+    private func gettingPercentBetween(firstNumber: Double, and secondNumber: Double) -> Double {
+        if secondNumber == 0.0 {
+            return 1.0
+        } else {
+            return firstNumber / secondNumber
         }
-        
-        return .init(distance: totalDistance, numberOfTrip: numberOfTrips)
     }
 }

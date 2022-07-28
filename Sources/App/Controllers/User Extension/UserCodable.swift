@@ -48,4 +48,8 @@ extension User {
     struct Login: Codable {
         let deviceId: String
     }
+    
+    struct PictureUpdated: Codable {
+        let path: String
+    }
 }
