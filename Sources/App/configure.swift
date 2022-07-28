@@ -48,5 +48,5 @@ public func configure(_ app: Application) throws {
 }
 
 extension MailgunDomain {
-    static var myApp: MailgunDomain { .init(Environment.get("MAILGUN_DOMAIN") ?? "", .us)}
+    static var myApp: MailgunDomain { .init(Environment.get("MAILGUN_DOMAIN") ?? "", .eu)}
 }
