@@ -283,7 +283,7 @@ struct TripController: RouteCollection {
     /// Getting percent
     private func gettingPercentBetween(firstNumber: Double, and secondNumber: Double) -> Double {
         if secondNumber == 0 {
-            return .infinity
+            return 1
         } else {
             return (firstNumber-secondNumber)/secondNumber
         }
