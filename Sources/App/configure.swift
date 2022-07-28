@@ -33,7 +33,8 @@ public func configure(_ app: Application) throws {
     app.mailgun.configuration = .environment
     app.mailgun.defaultDomain = .myApp
     
-    _ = MailgunMessage(from: Environment.get("MAILGUN_FROM_EMAIL") ?? "", to: Environment.get("MAILGUN_ADMIN_EMAIL") ?? "", subject: "Server is started", text: "The server has started!")
+    let message = MailgunMessage(from: Environment.get("MAILGUN_FROM_EMAIL") ?? "", to: Environment.get("MAILGUN_ADMIN_EMAIL") ?? "", subject: "Server is started", text: "The server has started!")
+    _ = try app.mailgun().send(message).wait()
     
     // Migration
     app.migrations.add(CreateAddress())
