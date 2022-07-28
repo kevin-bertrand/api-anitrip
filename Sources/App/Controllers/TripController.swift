@@ -240,7 +240,7 @@ struct TripController: RouteCollection {
     private func getDistanceForXYearAgo(_ delta: Int, trips: [Trip]) -> Trip.ChartInfo {
         var totalDistance: Double = 0.0
         var numberOfTrips = 0
-        var yearToFind =  Calendar.current.component(.year, from: Date()) - delta
+        let yearToFind =  Calendar.current.component(.year, from: Date()) - delta
         
         for trip in trips {
             if let tripDate = trip.date.toDate,
@@ -282,10 +282,10 @@ struct TripController: RouteCollection {
     
     /// Getting percent
     private func gettingPercentBetween(firstNumber: Double, and secondNumber: Double) -> Double {
-        if secondNumber == 0.0 {
-            return 1.0
+        if secondNumber == 0 {
+            return .infinity
         } else {
-            return firstNumber / secondNumber
+            return (firstNumber-secondNumber)/secondNumber
         }
     }
 }
