@@ -8,15 +8,10 @@
 import Fluent
 import Vapor
 
-struct AddressController: RouteCollection {
-    func boot(routes: RoutesBuilder) throws {
-        
-    }
-    
-    // MARK: Routes functions
-    
-    
+struct AddressController {
     // MARK: Utilities functions
+    // MARK: Public
+    /// Check if an address is saved. If not save it.
     func create(_ address: Address?, for req: Request) async throws -> Address? {
         guard let address = address else { return nil }
         
@@ -29,10 +24,12 @@ struct AddressController: RouteCollection {
         return try await checkIfAddressExists(address, for: req)
     }
     
+    /// Return an address from its ID
     func getAddressFromId(_ id: UUID?, for req: Request) async throws -> Address? {
         return try await Address.find(id, on: req.db)
     }
     
+    // MARK: Private
     /// Check if the address already exists
     private func checkIfAddressExists(_ address: Address, for req: Request) async throws -> Address? {
         return try await Address.query(on: req.db)

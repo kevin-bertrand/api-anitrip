@@ -11,9 +11,10 @@ import Mailgun
 import Vapor
 
 struct UserController: RouteCollection {
-    // Properties
+    // MARK: Properties
     var addressController: AddressController
     
+    // MARK: Route initialisation
     func boot(routes: RoutesBuilder) throws {
         let userGroup = routes.grouped("user")
         userGroup.post("create", use: create)
@@ -22,14 +23,8 @@ struct UserController: RouteCollection {
         basicGroup.post("login", use: login)
         
         let tokenGroup = userGroup.grouped(UserToken.authenticator()).grouped(UserToken.guardMiddleware())
-        tokenGroup.patch("activate", ":userEmail", use: activate)
-        tokenGroup.patch("desactivate", ":userEmail", use: desactivate)
-        tokenGroup.patch("delete", ":userEmail", use: delete)
-        tokenGroup.patch("position", use: updatePosition)
         tokenGroup.patch("picture", use: updatePicture)
         tokenGroup.patch(use: update)
-        tokenGroup.get(use: getList)
-        tokenGroup.get("toActivate", use: getToActivateAccount)
     }
     
     // MARK: Routes functions
@@ -98,118 +93,6 @@ struct UserController: RouteCollection {
         return .init(status: .created, headers: getDefaultHttpHeader(), body: .empty)
     }
     
-    /// Activate account
-    private func activate(req: Request) async throws -> Response {
-        guard (try req.auth.require(User.self)).position == .administrator else {
-            throw Abort(.unauthorized)
-        }
-        
-        guard let userEmailToActivate = req.parameters.get("userEmail"),
-              try await User.query(on: req.db).filter(\.$email == userEmailToActivate).all().count == 1 else {
-            throw Abort(.notFound)
-        }
-        
-        try await User.query(on: req.db)
-            .filter(\.$email == userEmailToActivate)
-            .set(\.$isActive, to: true)
-            .update()
-    
-        let message = MailgunMessage(from: Environment.get("MAILGUN_FROM_EMAIL") ?? "",
-                                     to: userEmailToActivate,
-                                     subject: "Account activation",
-                                     text: """
-                                     Dear \(userEmailToActivate),
-                                     
-                                     Your account is now activate!
-                                     Go to the application to connect with your email and your password.
-                                     
-                                     Don't forget to fill your profile with your personnal informations!
-                                     
-                                     Regards.
-                                     
-                                     -----------------------------------------------
-                                     This is an automatic email, do not reply!
-                                     """)
-        
-        _ = req.mailgun().send(message).map { _ in
-            return true
-        }
-        
-        return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .empty)
-    }
-    
-    /// Get account to active list
-    private func getToActivateAccount(req: Request) async throws -> Response {
-        guard (try req.auth.require(User.self)).position == .administrator else {
-            throw Abort(.unauthorized)
-        }
-        
-        let userToActive = try await User.query(on: req.db)
-            .filter(\.$isActive == false)
-            .all()
-        
-        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(userToActive)))
-    }
-    
-    /// Delete account
-    private func delete(req: Request) async throws -> Response {
-        guard (try req.auth.require(User.self)).position == .administrator else {
-            throw Abort(.unauthorized)
-        }
-        
-        guard let userEmailToDelete = req.parameters.get("userEmail"),
-              try await User.query(on: req.db).filter(\.$email == userEmailToDelete).all().count == 1 else {
-            throw Abort(.notFound)
-        }
-        
-        try await User.query(on: req.db)
-            .filter(\.$email == userEmailToDelete)
-            .set(\.$isDeleted, to: true)
-            .set(\.$isActive, to: false)
-            .update()
-        
-        return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .empty)
-    }
-    
-    /// Desactivate account
-    private func desactivate(req: Request) async throws -> Response {
-        guard (try req.auth.require(User.self)).position == .administrator else {
-            throw Abort(.unauthorized)
-        }
-        
-        guard let userEmailToDesactivate = req.parameters.get("userEmail"),
-              try await User.query(on: req.db).filter(\.$email == userEmailToDesactivate).all().count == 1 else {
-            throw Abort(.notFound)
-        }
-        
-        try await User.query(on: req.db)
-            .filter(\.$email == userEmailToDesactivate)
-            .set(\.$isActive, to: false)
-            .update()
-        
-        return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .empty)
-    }
-    
-    /// Update position
-    private func updatePosition(req: Request) async throws -> Response {
-        guard (try req.auth.require(User.self)).position == .administrator else {
-            throw Abort(.unauthorized)
-        }
-        
-        let receivedData = try req.content.decode(User.UpdatePosition.self)
-        
-        guard try await User.query(on: req.db).filter(\.$email == receivedData.email).all().count == 1 else {
-            throw Abort(.notFound)
-        }
-        
-        try await User.query(on: req.db)
-            .filter(\.$email == receivedData.email)
-            .set(\.$position, to: receivedData.position)
-            .update()
-        
-        return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .empty)
-    }
-    
     /// Update user informations
     private func update(req: Request) async throws -> Response {
         let userAuth = try getUserAuthFor(req)
@@ -269,32 +152,20 @@ struct UserController: RouteCollection {
         return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .empty)
     }
     
-    /// Getting the user list
-    private func getList(req: Request) async throws -> Response {
-        let users = try await User.query(on: req.db)
-            .all()
-
-        var usersInformation: [User.Informations] = []
-        
-        for user in users {
-            let address = try await addressController.getAddressFromId(user.$address.id, for: req)
-            usersInformation.append(User.Informations(imagePath: user.imagePath, id: user.id ?? UUID(), firstname: user.firstname, lastname: user.lastname, email: user.email, phoneNumber: user.phoneNumber, gender: user.gender, position: user.position, missions: user.missions, address: address, token: "", isActive: user.isActive))
-        }
-
-        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(usersInformation)))
-    }
-    
     // MARK: Utilities functions
+    /// Getting the connected user
     private func getUserAuthFor(_ req: Request) throws -> User {
         return try req.auth.require(User.self)
     }
     
+    /// Generate token when login is success
     private func generateToken(for user: User, in req: Request) async throws -> UserToken {
         let token = try user.generateToken()
         try await token.save(on: req.db)
         return token
     }
     
+    /// Delete token for a selected user
     private func deleteToken(for userID: UUID, in req: Request) async throws {
         try await UserToken.query(on: req.db)
             .filter(\.$user.$id == userID)
@@ -302,6 +173,7 @@ struct UserController: RouteCollection {
             .delete(on: req.db)
     }
     
+    /// Check if both new passwords are the same and not null
     private func checkNewPassword(for user: User, with newInformations: User.Update, in req: Request) async throws -> String? {
         guard (newInformations.password != nil && newInformations.passwordVerification != nil && newInformations.password != Optional("")) else { return nil }
         
@@ -312,6 +184,7 @@ struct UserController: RouteCollection {
         return password
     }
     
+    /// Getting the default HTTP headers
     private func getDefaultHttpHeader() -> HTTPHeaders {
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/json")

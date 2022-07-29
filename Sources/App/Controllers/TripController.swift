@@ -10,10 +10,10 @@ import Vapor
 import Foundation
 
 struct TripController: RouteCollection {
-    // Properties
+    // MARK: Properties
     var addressController: AddressController
     
-    /// Route initialisation
+    // MARK: Route initialisation
     func boot(routes: RoutesBuilder) throws {
         let tripGroup = routes.grouped("trip")
         let tokenGroup = tripGroup.grouped(UserToken.authenticator()).grouped(UserToken.guardMiddleware())
@@ -26,6 +26,7 @@ struct TripController: RouteCollection {
     }
     
     // MARK: Routes functions
+    /// Add a new trip for a user
     private func add(req: Request) async throws -> Response {
         let userAuth = try getUserAuthFor(req)
         let receivedData = try req.content.decode(Trip.Create.self)
@@ -49,6 +50,7 @@ struct TripController: RouteCollection {
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .empty)
     }
     
+    /// Update a saved trip
     private func update(req: Request) async throws -> Response {
         let receivedData = try req.content.decode(Trip.self)
         
@@ -71,6 +73,7 @@ struct TripController: RouteCollection {
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .empty)
     }
     
+    /// Get the trip list for a user
     private func getList(req: Request) async throws -> Response {
         let userAuth = try getUserAuthFor(req)
         
@@ -99,6 +102,7 @@ struct TripController: RouteCollection {
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(tripsInformation)))
     }
     
+    /// Getting 3 latests trips
     private func getThreeLatests(req: Request) async throws -> Response {
         guard let userId = UUID(uuidString: req.parameters.get("userID") ?? "nul ") else {
             throw Abort(.notFound)
@@ -126,6 +130,7 @@ struct TripController: RouteCollection {
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(tripsInformation)))
     }
     
+    /// Getitng the chart points
     private func getChartPoint(req: Request) async throws -> Response {
         guard let userId = UUID(uuidString: req.parameters.get("userID") ?? "nul"),
               let filter = req.parameters.get("filter") else {
@@ -157,6 +162,7 @@ struct TripController: RouteCollection {
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(latestDistances)))
     }
     
+    /// Getting this week and this year news
     private func getNews(req: Request) async throws -> Response {
         guard let userId = UUID(uuidString: req.parameters.get("userID") ?? "nul ") else {
             throw Abort(.notFound)
@@ -170,16 +176,19 @@ struct TripController: RouteCollection {
     }
     
     // MARK: Utilities functions
+    /// Getting the connected user
     private func getUserAuthFor(_ req: Request) throws -> User {
         return try req.auth.require(User.self)
     }
     
+    /// Getting the default HTTP headers
     private func getDefaultHttpHeader() -> HTTPHeaders {
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/json")
         return headers
     }
     
+    /// Getting Chart informations for a specific day
     private func getDistanceForXDaysAgo(_ days: Double, trips: [Trip]) -> Trip.ChartInfo {
         var totalDistance: Double = 0.0
         var dateToFind = ""
@@ -198,6 +207,7 @@ struct TripController: RouteCollection {
         return Trip.ChartInfo(date: dateToFind, distance: totalDistance, numberOfTrip: numberOfTrips)
     }
     
+    /// Getting Chart informations for a specific week
     private func getDistanceForXWeekAgo(_ delta: Int, trips: [Trip]) -> Trip.ChartInfo {
         var totalDistance: Double = 0.0
         var numberOfTrips = 0
@@ -214,6 +224,7 @@ struct TripController: RouteCollection {
         return Trip.ChartInfo(date: "Week \(weekNumberToFind)", distance: totalDistance, numberOfTrip: numberOfTrips)
     }
     
+    /// Getting Chart informations for a specific month
     private func getDistanceForXMonthAgo(_ delta: Int, trips: [Trip]) -> Trip.ChartInfo {
         var totalDistance: Double = 0.0
         var numberOfTrips = 0
@@ -237,6 +248,7 @@ struct TripController: RouteCollection {
         return Trip.ChartInfo(date: "\(monthToFind)/\(year)", distance: totalDistance, numberOfTrip: numberOfTrips)
     }
     
+    /// Getting Chart informations for a specific year
     private func getDistanceForXYearAgo(_ delta: Int, trips: [Trip]) -> Trip.ChartInfo {
         var totalDistance: Double = 0.0
         var numberOfTrips = 0

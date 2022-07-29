@@ -6,4 +6,5 @@ func routes(_ app: Application) throws {
 
     try app.register(collection: TripController(addressController: addressController))
     try app.register(collection: UserController(addressController: addressController))
+    try app.register(collection: VolunteerController(addressController: addressController))
 }
