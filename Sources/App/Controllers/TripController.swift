@@ -58,7 +58,7 @@ struct TripController: RouteCollection {
         guard let _ = userAuth.id,
               let startingAddressId = try await addressController.create(receivedData.startingAddress, for: req)?.id,
               let endingAddressId = try await addressController.create(receivedData.endingAddress, for: req)?.id,
-              receivedData.id != UUID(uuid: UUID_NULL)else {
+              receivedData.id != UUID(uuidString: "00000000-0000-0000-0000-000000000000") else {
             throw Abort(.unauthorized)
         }
         
