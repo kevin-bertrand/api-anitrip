@@ -8,7 +8,8 @@
 import Foundation
 
 extension Trip {
-    struct Create: Codable {
+    struct Update: Codable {
+        let id: UUID
         let date: String
         let missions: [String]
         let comment: String?

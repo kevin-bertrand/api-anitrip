@@ -29,14 +29,14 @@ struct TripController: RouteCollection {
     /// Add a new trip for a user
     private func add(req: Request) async throws -> Response {
         let userAuth = try getUserAuthFor(req)
-        let receivedData = try req.content.decode(Trip.Create.self)
+        let receivedData = try req.content.decode(Trip.Update.self)
         
         guard let userId = userAuth.id,
               let startingAddressId = try await addressController.create(receivedData.startingAddress, for: req)?.id,
               let endingAddressId = try await addressController.create(receivedData.endingAddress, for: req)?.id  else {
             throw Abort(.unauthorized)
         }
-    
+        
         let newTrip = Trip(date: receivedData.date,
                            missions: receivedData.missions,
                            comment: receivedData.comment,
@@ -52,16 +52,18 @@ struct TripController: RouteCollection {
     
     /// Update a saved trip
     private func update(req: Request) async throws -> Response {
-        let receivedData = try req.content.decode(Trip.self)
+        let userAuth = try getUserAuthFor(req)
+        let receivedData = try req.content.decode(Trip.Update.self)
         
-        guard let tripId = receivedData.id,
+        guard let _ = userAuth.id,
               let startingAddressId = try await addressController.create(receivedData.startingAddress, for: req)?.id,
-              let endingAddressId = try await addressController.create(receivedData.endingAddress, for: req)?.id  else {
+              let endingAddressId = try await addressController.create(receivedData.endingAddress, for: req)?.id,
+              receivedData.id != UUID(uuid: UUID_NULL)else {
             throw Abort(.unauthorized)
         }
         
         try await Trip.query(on: req.db)
-            .filter(\.$id == tripId)
+            .filter(\.$id == receivedData.id)
             .set(\.$date, to: receivedData.date)
             .set(\.$missions, to: receivedData.missions)
             .set(\.$totalDistance, to: receivedData.totalDistance)
@@ -107,13 +109,13 @@ struct TripController: RouteCollection {
         guard let userId = UUID(uuidString: req.parameters.get("userID") ?? "nul ") else {
             throw Abort(.notFound)
         }
-    
+        
         var trips = try await Trip.query(on: req.db)
             .filter(\.$user.$id == userId)
             .all()
         
         trips = trips.sorted { $0.date > $1.date }
-                
+        
         if trips.count > 3 {
             trips = Array(trips[0...2])
         }
@@ -140,7 +142,7 @@ struct TripController: RouteCollection {
         let trips = try await Trip.query(on: req.db)
             .filter(\.$user.$id == userId)
             .all()
-
+        
         var latestDistances: [Trip.ChartInfo] = []
         
         if filter == "week" {
@@ -171,7 +173,7 @@ struct TripController: RouteCollection {
         let trips = try await Trip.query(on: req.db)
             .filter(\.$user.$id == userId)
             .all()
-                
+        
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(formatNews(for: trips))))
     }
     
@@ -212,7 +214,7 @@ struct TripController: RouteCollection {
         var totalDistance: Double = 0.0
         var numberOfTrips = 0
         let weekNumberToFind =  Calendar.current.component(.weekOfYear, from: Date()) - delta
-    
+        
         for trip in trips {
             if let tripDate = trip.date.toDate,
                Calendar.current.component(.weekOfYear, from: tripDate) == weekNumberToFind {
@@ -236,7 +238,7 @@ struct TripController: RouteCollection {
             year = year - 1
         }
         
-    
+        
         for trip in trips {
             if let tripDate = trip.date.toDate,
                Calendar.current.component(.month, from: tripDate) == monthToFind {
