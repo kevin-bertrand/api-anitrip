@@ -148,7 +148,7 @@ struct TripController: RouteCollection {
             .filter(\.$user.$id == receivedData.userID)
             .all()
         
-        var exportInformation = Trip.TripToExport(userLastname: user.lastname, userFirstname: user.firstname, userPhone: user.phoneNumber, userEmail: user.email, startDate: receivedData.startDate, endDate: receivedData.endDate, trips: [])
+        var exportInformation = Trip.TripToExport(userLastname: user.lastname, userFirstname: user.firstname, userPhone: user.phoneNumber, userEmail: user.email, startDate: receivedData.startDate, endDate: receivedData.endDate, totalDistance: 0.0, trips: [])
         
         for trip in trips {
             if let tripDate = trip.date.toDate,
@@ -160,6 +160,10 @@ struct TripController: RouteCollection {
                 
                 exportInformation.trips.append(Trip.Informations(id: trip.id, date: trip.date, missions: trip.missions, comment: trip.comment, totalDistance: trip.totalDistance, startingAddress: startingAddress, endingAddress: endingAddress))
             }
+        }
+        
+        for trip in exportInformation.trips {
+            exportInformation.totalDistance += trip.totalDistance
         }
         
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(exportInformation)))

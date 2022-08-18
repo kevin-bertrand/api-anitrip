@@ -58,6 +58,7 @@ extension Trip {
         let userEmail: String
         let startDate: String
         let endDate: String
+        var totalDistance: Double
         var trips: [Informations]
     }
 }
