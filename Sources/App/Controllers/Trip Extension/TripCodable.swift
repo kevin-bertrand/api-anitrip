@@ -52,7 +52,10 @@ extension Trip {
     }
     
     struct TripToExport: Codable {
-        let userID: UUID
+        let userLastname: String
+        let userFirstname: String
+        let userPhone: String
+        let userEmail: String
         let startDate: String
         let endDate: String
         var trips: [Informations]

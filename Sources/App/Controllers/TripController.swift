@@ -138,22 +138,27 @@ struct TripController: RouteCollection {
         let userAuth = try getUserAuthFor(req)
         let receivedData = try req.content.decode(Trip.ListFilter.self)
         
-        guard userAuth.position == .administrator || userAuth.id == receivedData.userID else {
+        guard userAuth.position == .administrator || userAuth.id == receivedData.userID, let user = try await User.find(receivedData.userID, on: req.db) else {
             throw Abort(.unauthorized)
         }
+        
+        
         
         let trips = try await Trip.query(on: req.db)
             .filter(\.$user.$id == receivedData.userID)
             .all()
         
-        var exportInformation = Trip.TripToExport(userID: receivedData.userID, startDate: receivedData.startDate, endDate: receivedData.endDate, trips: [])
+        var exportInformation = Trip.TripToExport(userLastname: user.lastname, userFirstname: user.firstname, userPhone: user.phoneNumber, userEmail: user.email, startDate: receivedData.startDate, endDate: receivedData.endDate, trips: [])
         
         for trip in trips {
             if let tripDate = trip.date.toDate,
                let startFilterDate = receivedData.startDate.toDate,
                let endFilterDate = receivedData.endDate.toDate,
                tripDate <= endFilterDate && tripDate > startFilterDate {
-                exportInformation.trips.append(Trip.Informations(id: trip.id, date: trip.date, missions: trip.missions, comment: trip.comment, totalDistance: trip.totalDistance, startingAddress: trip.startingAddress, endingAddress: trip.endingAddress))
+                let startingAddress = try await addressController.getAddressFromId(trip.$startingAddress.id, for: req)
+                let endingAddress = try await addressController.getAddressFromId(trip.$endingAddress.id, for: req)
+                
+                exportInformation.trips.append(Trip.Informations(id: trip.id, date: trip.date, missions: trip.missions, comment: trip.comment, totalDistance: trip.totalDistance, startingAddress: startingAddress, endingAddress: endingAddress))
             }
         }
         
