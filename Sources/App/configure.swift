@@ -30,6 +30,7 @@ public func configure(_ app: Application) throws {
     app.apns.configuration = try .init(authenticationMethod: .jwt(key: .private(filePath: Environment.get("FILE_PATH") ?? ""), keyIdentifier: JWKIdentifier(string: Environment.get("KEY_IDENTIFIER") ?? ""), teamIdentifier: Environment.get("TEAM_IDENTIFIER") ?? ""), topic: "com.desyntic.anitrip", environment: .sandbox)
     
     // Port configuration
+    app.http.server.configuration.hostname = "http://anitrip.desyntic.com"
     app.http.server.configuration.port = 2564
     
     // Configure MailGun
