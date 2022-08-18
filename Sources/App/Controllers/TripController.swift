@@ -18,7 +18,7 @@ struct TripController: RouteCollection {
         let tripGroup = routes.grouped("trip")
         let tokenGroup = tripGroup.grouped(UserToken.authenticator()).grouped(UserToken.guardMiddleware())
         tokenGroup.post(use: add)
-        tokenGroup.post(use: getToExport)
+        tokenGroup.post("toExport", use: getToExport)
         tokenGroup.patch(use: update)
         tokenGroup.get(":userID", use: getList)
         tokenGroup.get("latest", ":userID", use: getThreeLatests)
