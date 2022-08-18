@@ -19,6 +19,7 @@ struct TripController: RouteCollection {
         let tokenGroup = tripGroup.grouped(UserToken.authenticator()).grouped(UserToken.guardMiddleware())
         tokenGroup.post(use: add)
         tokenGroup.patch(use: update)
+        tokenGroup.get(use: getToExport)
         tokenGroup.get(":userID", use: getList)
         tokenGroup.get("latest", ":userID", use: getThreeLatests)
         tokenGroup.get("chart", ":filter", ":userID", use: getChartPoint)
@@ -130,6 +131,33 @@ struct TripController: RouteCollection {
         }
         
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(tripsInformation)))
+    }
+    
+    /// Getting trips to export
+    private func getToExport(req: Request) async throws -> Response {
+        let userAuth = try getUserAuthFor(req)
+        let receivedData = try req.content.decode(Trip.ListFilter.self)
+        
+        guard userAuth.position == .administrator || userAuth.id == receivedData.userID else {
+            throw Abort(.unauthorized)
+        }
+        
+        let trips = try await Trip.query(on: req.db)
+            .filter(\.$user.$id == receivedData.userID)
+            .all()
+        
+        var exportInformation = Trip.TripToExport(userID: receivedData.userID, startDate: receivedData.startDate, endDate: receivedData.endDate, trips: [])
+        
+        for trip in trips {
+            if let tripDate = trip.date.toDate,
+               let startFilterDate = receivedData.startDate.toDate,
+               let endFilterDate = receivedData.endDate.toDate,
+               tripDate <= endFilterDate && tripDate > startFilterDate {
+                exportInformation.trips.append(Trip.Informations(id: trip.id, date: trip.date, missions: trip.missions, comment: trip.comment, totalDistance: trip.totalDistance, startingAddress: trip.startingAddress, endingAddress: trip.endingAddress))
+            }
+        }
+        
+        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(exportInformation)))
     }
     
     /// Getitng the chart points

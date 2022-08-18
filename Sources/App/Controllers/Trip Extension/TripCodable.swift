@@ -44,4 +44,17 @@ extension Trip {
         let numberTripPercentSinceLastYear: Double
         let numberTripPercentSinceLastWeek: Double
     }
+    
+    struct ListFilter: Codable {
+        let userID: UUID
+        let startDate: String
+        let endDate: String
+    }
+    
+    struct TripToExport: Codable {
+        let userID: UUID
+        let startDate: String
+        let endDate: String
+        var trips: [Informations]
+    }
 }
