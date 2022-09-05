@@ -27,7 +27,11 @@ public func configure(_ app: Application) throws {
     }
 
     // Cpnfigure APNS
-    app.apns.configuration = try .init(authenticationMethod: .jwt(key: .private(filePath: Environment.get("FILE_PATH") ?? ""), keyIdentifier: JWKIdentifier(string: Environment.get("KEY_IDENTIFIER") ?? ""), teamIdentifier: Environment.get("TEAM_IDENTIFIER") ?? ""), topic: "com.desyntic.anitrip", environment: .sandbox)
+    app.apns.configuration = try .init(authenticationMethod: .jwt(key: .private(filePath: Environment.get("FILE_PATH") ?? ""),
+                                                                  keyIdentifier: JWKIdentifier(string: Environment.get("KEY_IDENTIFIER") ?? ""),
+                                                                  teamIdentifier: Environment.get("TEAM_IDENTIFIER") ?? ""),
+                                       topic: "com.desyntic.anitrip",
+                                       environment: .sandbox)
     
     // Port configuration
     app.http.server.configuration.hostname = Environment.get("SERVER_HOSTNAME") ?? "127.0.0.1"
@@ -37,7 +41,10 @@ public func configure(_ app: Application) throws {
     app.mailgun.configuration = .environment
     app.mailgun.defaultDomain = .myApp
     
-    let message = MailgunMessage(from: Environment.get("MAILGUN_FROM_EMAIL") ?? "", to: Environment.get("MAILGUN_ADMIN_EMAIL") ?? "", subject: "Server is started", text: "The server has started!")
+    let message = MailgunMessage(from: Environment.get("MAILGUN_FROM_EMAIL") ?? "",
+                                 to: Environment.get("MAILGUN_ADMIN_EMAIL") ?? "",
+                                 subject: "Server is started",
+                                 text: "The server has started!")
     _ = try app.mailgun().send(message).wait()
     
     // Migration

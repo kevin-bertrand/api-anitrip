@@ -32,9 +32,9 @@ struct UserController: RouteCollection {
     private func login(req: Request) async throws -> Response {
         let userAuth = try getUserAuthFor(req)
         let receivedData = try req.content.decode(User.Login.self)
-        guard userAuth.isActive else {
-            throw Abort(.custom(code: 460, reasonPhrase: "Account not active"))
-        }
+        
+        try checkAccountActivation(of: userAuth)
+        
         let token = try await generateToken(for: userAuth, in: req)
         let userInformations = User.Informations(imagePath: userAuth.imagePath,
                                                  id: userAuth.id ?? UUID(),
@@ -97,9 +97,7 @@ struct UserController: RouteCollection {
     private func update(req: Request) async throws -> Response {
         let userAuth = try getUserAuthFor(req)
         let receivedData = try req.content.decode(User.Update.self)
-        guard userAuth.isActive else {
-            throw Abort(.custom(code: 460, reasonPhrase: "Account not active"))
-        }
+        try checkAccountActivation(of: userAuth)
         
         guard let userID = userAuth.id else {
             throw Abort(.notAcceptable)
@@ -126,7 +124,18 @@ struct UserController: RouteCollection {
             .set(\.$address.$id, to: address?.id)
             .update()
         
-        let updatedUser = User.Informations(imagePath: userAuth.imagePath, id: userAuth.id ?? UUID(), firstname: receivedData.firstname, lastname: receivedData.lastname, email: userAuth.email, phoneNumber: receivedData.phoneNumber, gender: receivedData.gender, position: userAuth.position, missions: receivedData.missions, address: address, token: token.value, isActive: userAuth.isActive)
+        let updatedUser = User.Informations(imagePath: userAuth.imagePath,
+                                            id: userAuth.id ?? UUID(),
+                                            firstname: receivedData.firstname,
+                                            lastname: receivedData.lastname,
+                                            email: userAuth.email,
+                                            phoneNumber: receivedData.phoneNumber,
+                                            gender: receivedData.gender,
+                                            position: userAuth.position,
+                                            missions: receivedData.missions,
+                                            address: address,
+                                            token: token.value,
+                                            isActive: userAuth.isActive)
         
         return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(updatedUser)))
     }
@@ -189,5 +198,12 @@ struct UserController: RouteCollection {
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/json")
         return headers
+    }
+    
+    /// Check if the account is activate
+    private func checkAccountActivation(of user: User) throws {
+        guard user.isActive else {
+            throw Abort(.custom(code: 460, reasonPhrase: "Account not active"))
+        }
     }
 }

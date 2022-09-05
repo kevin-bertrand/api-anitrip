@@ -41,7 +41,14 @@ final class Trip: Model, Content {
     // Initialization functions
     init() {}
     
-    init(id: UUID? = nil, date: String, missions: [String], comment: String?, totalDistance: Double, userID: User.IDValue, startingAddressID: Address.IDValue, endingAddressID: Address.IDValue) {
+    init(id: UUID? = nil,
+         date: String,
+         missions: [String],
+         comment: String?,
+         totalDistance: Double,
+         userID: User.IDValue,
+         startingAddressID: Address.IDValue,
+         endingAddressID: Address.IDValue) {
         self.id = id
         self.date = date
         self.missions = missions

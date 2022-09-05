@@ -8,6 +8,5 @@
 import Foundation
 
 enum Position: String, Codable {
-    case user = "user"
-    case administrator = "administrator"
+    case user, administrator
 }

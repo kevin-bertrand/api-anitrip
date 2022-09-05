@@ -19,7 +19,6 @@ struct VolunteerController: RouteCollection {
         let tokenGroup = volunteersGroup.grouped(UserToken.authenticator()).grouped(UserToken.guardMiddleware())
         tokenGroup.patch("activate", ":volunteerEmail", use: activate)
         tokenGroup.patch("desactivate", ":volunteerEmail", use: desactivate)
-        tokenGroup.patch("delete", ":volunteerEmail", use: delete)
         tokenGroup.patch("position", use: updatePosition)
         tokenGroup.get(use: getList)
         tokenGroup.get("toActivate", use: getToActivateAccount)
@@ -79,26 +78,6 @@ struct VolunteerController: RouteCollection {
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(userToActive)))
     }
     
-    /// Delete account
-    private func delete(req: Request) async throws -> Response {
-        guard try checkIfUserIsAdministrator(req) else {
-            throw Abort(.unauthorized)
-        }
-        
-        guard let userEmailToDelete = req.parameters.get("volunteerEmail"),
-              try await User.query(on: req.db).filter(\.$email == userEmailToDelete).all().count == 1 else {
-            throw Abort(.notFound)
-        }
-        
-        try await User.query(on: req.db)
-            .filter(\.$email == userEmailToDelete)
-            .set(\.$isDeleted, to: true)
-            .set(\.$isActive, to: false)
-            .update()
-        
-        return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .empty)
-    }
-    
     /// Desactivate account
     private func desactivate(req: Request) async throws -> Response {
         guard try checkIfUserIsAdministrator(req) else {
@@ -147,7 +126,18 @@ struct VolunteerController: RouteCollection {
         
         for user in users {
             let address = try await addressController.getAddressFromId(user.$address.id, for: req)
-            usersInformation.append(User.Informations(imagePath: user.imagePath, id: user.id ?? UUID(), firstname: user.firstname, lastname: user.lastname, email: user.email, phoneNumber: user.phoneNumber, gender: user.gender, position: user.position, missions: user.missions, address: address, token: "", isActive: user.isActive))
+            usersInformation.append(User.Informations(imagePath: user.imagePath,
+                                                      id: user.id ?? UUID(),
+                                                      firstname: user.firstname,
+                                                      lastname: user.lastname,
+                                                      email: user.email,
+                                                      phoneNumber: user.phoneNumber,
+                                                      gender: user.gender,
+                                                      position: user.position,
+                                                      missions: user.missions,
+                                                      address: address,
+                                                      token: "",
+                                                      isActive: user.isActive))
         }
 
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(usersInformation)))

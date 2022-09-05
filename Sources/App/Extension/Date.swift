@@ -8,6 +8,7 @@
 import Foundation
 
 extension Date {
+    /// Calculate a date with a delta
     func getFormattedDateWithDelta(format: String, delta: Double) -> String {
         let dateformat = DateFormatter()
         dateformat.dateFormat = format

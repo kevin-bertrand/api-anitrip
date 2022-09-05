@@ -17,9 +17,6 @@ final class UserToken: Model, Content {
     var id: UUID?
     
     // Fields
-//    @Field(key: "creation_date")
-//    var creationDate: Date
-    
     @Field(key: "value")
     var value: String
     
@@ -31,7 +28,6 @@ final class UserToken: Model, Content {
     
     init(id: UUID? = nil, value: String, userID: User.IDValue) {
         self.id = id
-//        self.creationDate = Date.now
         self.value = value
         self.$user.id = userID
     }
