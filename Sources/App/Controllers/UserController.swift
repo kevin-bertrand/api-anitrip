@@ -18,6 +18,7 @@ struct UserController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
         let userGroup = routes.grouped("user")
         userGroup.post("create", use: create)
+        userGroup.get(":image", ":extension", use: getProfilePicture)
         
         let basicGroup = userGroup.grouped(User.authenticator()).grouped(User.guardMiddleware())
         basicGroup.post("login", use: login)
@@ -25,7 +26,6 @@ struct UserController: RouteCollection {
         let tokenGroup = userGroup.grouped(UserToken.authenticator()).grouped(UserToken.guardMiddleware())
         tokenGroup.patch("picture", use: updatePicture)
         tokenGroup.patch(use: update)
-        tokenGroup.get(":image", ":extension", use: getProfilePicture)
     }
     
     // MARK: Routes functions
