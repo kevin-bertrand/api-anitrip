@@ -25,6 +25,7 @@ struct UserController: RouteCollection {
         let tokenGroup = userGroup.grouped(UserToken.authenticator()).grouped(UserToken.guardMiddleware())
         tokenGroup.patch("picture", use: updatePicture)
         tokenGroup.patch(use: update)
+        tokenGroup.get(":image", use: getProfilePicture)
     }
     
     // MARK: Routes functions
@@ -159,6 +160,18 @@ struct UserController: RouteCollection {
         }
         
         return .init(status: .accepted, headers: getDefaultHttpHeader(), body: .empty)
+    }
+    
+    /// Get profile picture
+    private func getProfilePicture(req: Request) async throws -> Response {
+        let image = req.parameters.get("image", as: String.self)
+        
+        guard let image = image else { throw Abort(.unauthorized) }
+        
+        let path = "/var/www/html/AniTrip/Public/\(image)"
+        let downloadedImage = try await req.fileio.collectFile(at: path)
+        
+        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(buffer: downloadedImage))
     }
     
     // MARK: Utilities functions
