@@ -3,6 +3,7 @@ import JWTKit
 import Fluent
 import FluentPostgresDriver
 import FluentSQLiteDriver
+import Leaf
 import Mailgun
 import Vapor
 
@@ -26,6 +27,12 @@ public func configure(_ app: Application) throws {
         app.databases.use(.sqlite(.file("db.sqlite")), as: .sqlite)
     }
 
+    // Configuring files middleware
+    app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+    
+    // Leaf configuration
+    app.views.use(.leaf)
+    
     // Cpnfigure APNS
     app.apns.configuration = try .init(authenticationMethod: .jwt(key: .private(filePath: Environment.get("FILE_PATH") ?? ""),
                                                                   keyIdentifier: JWKIdentifier(string: Environment.get("KEY_IDENTIFIER") ?? ""),

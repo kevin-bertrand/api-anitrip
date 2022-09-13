@@ -7,7 +7,6 @@
 
 import Fluent
 import Vapor
-import Foundation
 
 struct TripController: RouteCollection {
     // MARK: Properties
@@ -190,6 +189,18 @@ struct TripController: RouteCollection {
         for trip in exportInformation.trips {
             exportInformation.totalDistance += trip.totalDistance
         }
+        
+        let pages = try [req.view.render("pdf")]
+            .flatten(on: req.eventLoop)
+            .map({ views in
+                views.map { view in
+                    Page(view.data)
+                }
+            }).wait()
+        
+        let document = Document(margins: 15)
+        document.pages = pages
+        let pdf = try await document.generatePDF(on: req.application.threadPool, eventLoop: req.eventLoop, title: "PDF")
         
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(exportInformation)))
     }

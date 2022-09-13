@@ -169,7 +169,6 @@ struct UserController: RouteCollection {
         
         guard let image = image, let imageExtension = imageExtension else { throw Abort(.unauthorized) }
         
-        let path = "\(image)"
         let downloadedImage = try await req.fileio.collectFile(at: "/var/www/html/AniTrip/Public/\(image).\(imageExtension)")
         
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(buffer: downloadedImage))
