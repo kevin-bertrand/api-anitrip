@@ -202,7 +202,8 @@ struct TripController: RouteCollection {
         document.pages = pages
         let pdf = try await document.generatePDF(on: req.application.threadPool, eventLoop: req.eventLoop, title: "PDF")
         
-        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(exportInformation)))
+//        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .init(data: try JSONEncoder().encode(exportInformation)))
+        return Response(status: .ok, headers: HTTPHeaders([("Content-Type", "application/pdf")]), body: .init(data: pdf))
     }
     
     /// Getitng the chart points
