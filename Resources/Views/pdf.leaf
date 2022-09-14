@@ -11,6 +11,61 @@
     </style>
 </head>
 <body>
-    <h1 class="h1">Hello World</h1>
+    <div class="container">
+        <div class="section">
+            <div class="row justify-content-center">
+                <h1 class="h1">Déduction fiscale</h1>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="row justify-content-between"
+                <div class="col-4">
+                    <span class="bold">Prénom: </span>Kevin</br>
+                    <span class="bold">Nom: </span>Bertrand</br>
+                </div>
+                
+                <div class="col-4">
+                    <span class="bold">Email: </span>k.bertrand@desyntic.com</br>
+                    <span class="bold">Tel.: </span>0123456789</br>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="row justify-content-center">
+                Cet export recouvre la période du 01/01/2022 au 31/12/2022
+            </div>
+        </div>
+        
+        <div class="section">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Distance</th>
+                        <th>Ville de départ</th>
+                        <th>Ville d'arrivée</th>
+                    </tr>
+                </thead
+                <tbody>
+                    <tr>
+                        <td>01/01/2022</td>
+                        <td>4km</td>
+                        <td>Paris</td>
+                        <td>Paris</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td></td>
+                        <td>4km</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
 </body>
 </html>
