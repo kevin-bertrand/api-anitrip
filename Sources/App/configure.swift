@@ -46,6 +46,7 @@ public func configure(_ app: Application) throws {
                                                                               privateKey: .privateKey(try .init(file: Environment.get("SERVER_TLS_KEY") ?? "", format: .pem)))
     app.http.server.configuration.hostname = Environment.get("SERVER_HOSTNAME") ?? "127.0.0.1"
     app.http.server.configuration.port = 2564
+    app.http.server.configuration.supportVersions = [.two]
     
     // Configure MailGun
     app.mailgun.configuration = .environment
