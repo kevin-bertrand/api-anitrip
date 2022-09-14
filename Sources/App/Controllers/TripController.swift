@@ -169,7 +169,7 @@ struct TripController: RouteCollection {
                tripDate <= endFilterDate && tripDate > startFilterDate {
                 let startingAddress = try await addressController.getAddressFromId(trip.$startingAddress.id, for: req)
                 let endingAddress = try await addressController.getAddressFromId(trip.$endingAddress.id, for: req)
-                tripList.append(["\(trip.date)", "\(trip.totalDistance)", "\(startingAddress?.city ?? "No address")", "\(endingAddress?.city ?? "No address")"])
+                tripList.append(["\(trip.date)", "\(trip.totalDistance.twoDigitPrecision) km", "\(startingAddress?.city ?? "No address")", "\(endingAddress?.city ?? "No address")"])
                 totalDistance += trip.totalDistance
             }
         }
@@ -180,7 +180,7 @@ struct TripController: RouteCollection {
                                phone: userAuth.phoneNumber,
                                startDate: startFilterDate.dateOnly,
                                endDate: endFilterDate.dateOnly,
-                               totalDistance: "\(totalDistance) km",
+                               totalDistance: "\(totalDistance.twoDigitPrecision)",
                                trips: tripList)
         
         let pages = try [req.view.render("pdf", tripPDF)]
@@ -193,7 +193,7 @@ struct TripController: RouteCollection {
         
         let document = Document(margins: 15)
         document.pages = pages
-        let pdf = try await document.generatePDF(on: req.application.threadPool, eventLoop: req.eventLoop, title: "PDF")
+        let pdf = try await document.generatePDF(on: req.application.threadPool, eventLoop: req.eventLoop, title: "\(userAuth.firstname) \(userAuth.lastname)")
         
         return Response(status: .ok, headers: HTTPHeaders([("Content-Type", "application/pdf")]), body: .init(data: pdf))
     }

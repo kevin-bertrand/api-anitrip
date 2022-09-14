@@ -83,7 +83,7 @@
                     #for(trip in trips):
                         <tr>
                             #for(part in trip):
-                                <td>#part</td>
+                                <td>#(part)</td>
                             #endfor
                         </tr>
                     #endfor
