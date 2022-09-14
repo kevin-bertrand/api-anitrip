@@ -157,9 +157,17 @@ struct TripController: RouteCollection {
             throw Abort(.notAcceptable)
         }
         
-        let trips = try await Trip.query(on: req.db)
+        var trips = try await Trip.query(on: req.db)
             .filter(\.$user.$id == receivedData.userID)
             .all()
+        
+        trips = trips.sorted(by: {
+            if let firstDate = $0.date.toDate, let secondDate = $1.date.toDate {
+                return firstDate.compare(secondDate) == .orderedAscending
+            } else {
+                return true
+            }
+        })
         
         var tripList: [[String]] = [[]]
         var totalDistance = 0.0
