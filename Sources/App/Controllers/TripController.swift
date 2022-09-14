@@ -149,48 +149,41 @@ struct TripController: RouteCollection {
         let userAuth = try getUserAuthFor(req)
         let receivedData = try req.content.decode(Trip.ListFilter.self)
         
-        guard userAuth.position == .administrator || userAuth.id == receivedData.userID, let user = try await User.find(receivedData.userID, on: req.db) else {
+        guard userAuth.position == .administrator || userAuth.id == receivedData.userID else {
             throw Abort(.unauthorized)
         }
         
-        
+        guard let startFilterDate = receivedData.startDate.toDate, let endFilterDate = receivedData.endDate.toDate else {
+            throw Abort(.notAcceptable)
+        }
         
         let trips = try await Trip.query(on: req.db)
             .filter(\.$user.$id == receivedData.userID)
             .all()
         
-        var exportInformation = Trip.TripToExport(userLastname: user.lastname,
-                                                  userFirstname: user.firstname,
-                                                  userPhone: user.phoneNumber,
-                                                  userEmail: user.email,
-                                                  startDate: receivedData.startDate,
-                                                  endDate: receivedData.endDate,
-                                                  totalDistance: 0.0,
-                                                  trips: [])
+        var tripList: [[String]] = [[]]
+        var totalDistance = 0.0
         
         for trip in trips {
             if let tripDate = trip.date.toDate,
-               let startFilterDate = receivedData.startDate.toDate,
-               let endFilterDate = receivedData.endDate.toDate,
                tripDate <= endFilterDate && tripDate > startFilterDate {
                 let startingAddress = try await addressController.getAddressFromId(trip.$startingAddress.id, for: req)
                 let endingAddress = try await addressController.getAddressFromId(trip.$endingAddress.id, for: req)
-                
-                exportInformation.trips.append(Trip.Informations(id: trip.id,
-                                                                 date: trip.date,
-                                                                 missions: trip.missions,
-                                                                 comment: trip.comment,
-                                                                 totalDistance: trip.totalDistance,
-                                                                 startingAddress: startingAddress,
-                                                                 endingAddress: endingAddress))
+                tripList.append(["\(trip.date)", "\(trip.totalDistance)", "\(startingAddress?.city ?? "No address")", "\(endingAddress?.city ?? "No address")"])
+                totalDistance += trip.totalDistance
             }
         }
         
-        for trip in exportInformation.trips {
-            exportInformation.totalDistance += trip.totalDistance
-        }
+        let tripPDF = Trip.PDF(firstname: userAuth.firstname,
+                               lastname: userAuth.lastname,
+                               email: userAuth.email,
+                               phone: userAuth.phoneNumber,
+                               startDate: startFilterDate.dateOnly,
+                               endDate: endFilterDate.dateOnly,
+                               totalDistance: "\(totalDistance) km",
+                               trips: tripList)
         
-        let pages = try [req.view.render("pdf")]
+        let pages = try [req.view.render("pdf", tripPDF)]
             .flatten(on: req.eventLoop)
             .map({ views in
                 views.map { view in

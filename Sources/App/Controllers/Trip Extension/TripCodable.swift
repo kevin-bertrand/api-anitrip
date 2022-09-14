@@ -61,4 +61,15 @@ extension Trip {
         var totalDistance: Double
         var trips: [Informations]
     }
+    
+    struct PDF: Codable {
+        let firstname: String
+        let lastname: String
+        let email: String
+        let phone: String
+        let startDate: String
+        let endDate: String
+        let totalDistance: String
+        let trips: [[String]]
+    }
 }

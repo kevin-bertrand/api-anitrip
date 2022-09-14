@@ -15,4 +15,11 @@ extension Date {
         let date = self
         return dateformat.string(from: (date-delta*84600))
     }
+    
+    /// Get the date at the format dd/MM/yyyy
+    var dateOnly: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yyyy"
+        return formatter.string(from: self)
+    }
 }
