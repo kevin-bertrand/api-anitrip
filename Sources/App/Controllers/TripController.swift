@@ -182,14 +182,19 @@ struct TripController: RouteCollection {
             }
         }
         
-        let tripPDF = Trip.PDF(firstname: userAuth.firstname,
+        let tripPDF = Trip.PDF(title: receivedData.language == "fr" ? "Déduction fiscale" : "Tax deduction",
+                               firstnameTitle: receivedData.language == "fr" ? "Prénom" : "Firstname",
+                               lastnameTitle: receivedData.language == "fr" ? "Nom" : "Lastname",
+                               phoneTitle: receivedData.language == "fr" ? "Tel." : "Phone",
+                               object: receivedData.language == "fr" ? "Cet export recouvre la période du \(startFilterDate.dateOnly) au \(endFilterDate.dateOnly)." : "This export covers the period from \(startFilterDate.dateOnly) to \(endFilterDate.dateOnly).",
+                               startTitle: receivedData.language == "fr" ? "Ville de départ" : "Start city",
+                               endTitle: receivedData.language == "fr" ? "Ville d'arrivée" : "Destination city",
+                               firstname: userAuth.firstname,
                                lastname: userAuth.lastname,
                                email: userAuth.email,
                                phone: userAuth.phoneNumber,
-                               startDate: startFilterDate.dateOnly,
-                               endDate: endFilterDate.dateOnly,
                                totalDistance: "\(totalDistance.twoDigitPrecision)",
-                               trips: tripList)
+                               trips:tripList)
         
         let pages = try [req.view.render("pdf", tripPDF)]
             .flatten(on: req.eventLoop)

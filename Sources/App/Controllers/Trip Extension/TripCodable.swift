@@ -47,6 +47,7 @@ extension Trip {
     
     struct ListFilter: Codable {
         let userID: UUID
+        let language: String
         let startDate: String
         let endDate: String
     }
@@ -63,12 +64,17 @@ extension Trip {
     }
     
     struct PDF: Codable {
+        let title: String
+        let firstnameTitle: String
+        let lastnameTitle: String
+        let phoneTitle: String
+        let object: String
+        let startTitle: String
+        let endTitle: String
         let firstname: String
         let lastname: String
         let email: String
         let phone: String
-        let startDate: String
-        let endDate: String
         let totalDistance: String
         let trips: [[String]]
     }

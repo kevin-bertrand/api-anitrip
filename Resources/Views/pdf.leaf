@@ -47,25 +47,25 @@
     <div class="container">
         <div class="section">
             <div class="row center">
-                <h1 class="bold">Déduction fiscale</h1>
+                <h1 class="bold">#(title)</h1>
             </div>
         </div>
 
         <div class="section row">
                 <div class="col-5">
-                    <span class="bold">Prénom: </span>#(firstname)</br>
-                    <span class="bold">Nom: </span>#(lastname)</br>
+                    <span class="bold">#(firstnameTitle): </span>#(firstname)</br>
+                    <span class="bold">#(lastnameTitle): </span>#(lastname)</br>
                 </div>
 
                 <div class="col-5 rightSection">
                     <span class="bold">Email: </span>#(email)</br>
-                    <span class="bold">Tel.: </span>#(phone)</br>
+                    <span class="bold">#(phoneTitle): </span>#(phone)</br>
             </div>
         </div>
 
         <div class="section">
             <div class="row center">
-                Cet export recouvre la période du #(startDate) au #(endDate).
+                #(object)
             </div>
         </div>
 
@@ -75,8 +75,8 @@
                     <tr>
                         <th>Date</th>
                         <th>Distance</th>
-                        <th>Ville de départ</th>
-                        <th>Ville d'arrivée</th>
+                        <th>#(startTitle)</th>
+                        <th>#(endTitle)</th>
                     </tr>
                 </thead
                 <tbody>
