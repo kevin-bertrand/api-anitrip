@@ -74,9 +74,9 @@
                 <thead>
                     <tr>
                         <th>Date</th>
-                        <th>Distance</th>
-                        <th>#(startTitle)</th>
-                        <th>#(endTitle)</th>
+                        <th>Trajet</th>
+                        <th>Motif</th>
+                        <th>Km parcourus</th>
                     </tr>
                 </thead
                 <tbody>
@@ -91,9 +91,9 @@
                 <tfoot>
                     <tr>
                         <td class="empty-table-cell"></td>
+                        <td class="empty-table-cell"></td>
+                        <td class="empty-table-cell"></td>
                         <td>#(totalDistance) km</td>
-                        <td class="empty-table-cell"></td>
-                        <td class="empty-table-cell"></td>
                     </tr>
                 </tfoot>
             </table>

@@ -177,7 +177,10 @@ struct TripController: RouteCollection {
                tripDate <= endFilterDate && tripDate > startFilterDate {
                 let startingAddress = try await addressController.getAddressFromId(trip.$startingAddress.id, for: req)
                 let endingAddress = try await addressController.getAddressFromId(trip.$endingAddress.id, for: req)
-                tripList.append(["\(tripDate.dateOnly)", "\(trip.totalDistance.twoDigitPrecision) km", "\(startingAddress?.city ?? "No address")", "\(endingAddress?.city ?? "No address")"])
+                tripList.append(["\(tripDate.dateOnly)",
+                                 "\(startingAddress?.city ?? "No address") -> \(endingAddress?.city ?? "No address")",
+                                 "\(trip.missions.joined(separator: ", "))\(trip.comment != nil ? ("\n" + trip.comment!) : "")",
+                                 "\(trip.totalDistance.twoDigitPrecision) km"])
                 totalDistance += trip.totalDistance
             }
         }
