@@ -153,12 +153,10 @@ struct TripController: RouteCollection {
             throw Abort(.unauthorized)
         }
         
-        guard let startFilterDate = receivedData.startDate.toDate, let endFilterDate = receivedData.endDate.toDate else {
-            throw Abort(.notAcceptable)
-        }
-        
         var trips = try await Trip.query(on: req.db)
             .filter(\.$user.$id == receivedData.userID)
+            .filter(\.$date <= receivedData.endDate)
+            .filter(\.$date >= receivedData.startDate)
             .all()
         
         trips = trips.sorted(by: {
@@ -173,23 +171,21 @@ struct TripController: RouteCollection {
         var totalDistance = 0.0
         
         for trip in trips {
-            if let tripDate = trip.date.toDate,
-               tripDate <= endFilterDate && tripDate > startFilterDate {
-                let startingAddress = try await addressController.getAddressFromId(trip.$startingAddress.id, for: req)
-                let endingAddress = try await addressController.getAddressFromId(trip.$endingAddress.id, for: req)
-                tripList.append(["\(tripDate.dateOnly)",
-                                 "\(startingAddress?.city ?? "No address") -> \(endingAddress?.city ?? "No address")",
-                                 "\(trip.missions.joined(separator: ", "))\(trip.comment != nil ? ("\n" + trip.comment!) : "")",
-                                 "\(trip.totalDistance.twoDigitPrecision) km"])
-                totalDistance += trip.totalDistance
-            }
+            let tripDate = trip.date
+            let startingAddress = try await addressController.getAddressFromId(trip.$startingAddress.id, for: req)
+            let endingAddress = try await addressController.getAddressFromId(trip.$endingAddress.id, for: req)
+            tripList.append(["\((tripDate.toDate ?? Date()).dateOnly)",
+                             "\(startingAddress?.city ?? "No address") -> \(endingAddress?.city ?? "No address")",
+                             "\(trip.missions.joined(separator: ", "))\(trip.comment != nil ? ("\n" + trip.comment!) : "")",
+                             "\(trip.totalDistance.twoDigitPrecision) km"])
+            totalDistance += trip.totalDistance
         }
         
         let tripPDF = Trip.PDF(title: receivedData.language == "fr" ? "Déduction fiscale" : "Tax deduction",
                                firstnameTitle: receivedData.language == "fr" ? "Prénom" : "Firstname",
                                lastnameTitle: receivedData.language == "fr" ? "Nom" : "Lastname",
                                phoneTitle: receivedData.language == "fr" ? "Tel." : "Phone",
-                               object: receivedData.language == "fr" ? "Cet export recouvre la période du \(startFilterDate.dateOnly) au \(endFilterDate.dateOnly)." : "This export covers the period from \(startFilterDate.dateOnly) to \(endFilterDate.dateOnly).",
+                               object: receivedData.language == "fr" ? "Cet export recouvre la période du \((receivedData.startDate.toDate ?? Date()).dateOnly) au \((receivedData.endDate.toDate ?? Date()).dateOnly)." : "This export covers the period from \((receivedData.startDate.toDate ?? Date()).dateOnly) to \((receivedData.endDate.toDate ?? Date()).dateOnly).",
                                startTitle: receivedData.language == "fr" ? "Ville de départ" : "Start city",
                                endTitle: receivedData.language == "fr" ? "Ville d'arrivée" : "Destination city",
                                firstname: userAuth.firstname,
@@ -302,7 +298,7 @@ struct TripController: RouteCollection {
             weekNumberToFind = 52 - weekNumberToFind
             year -= 1
         }
-                
+        
         for trip in trips {
             if let tripDate = trip.date.toDate,
                Calendar.current.component(.weekOfYear, from: tripDate) == weekNumberToFind,
