@@ -295,11 +295,18 @@ struct TripController: RouteCollection {
     private func getDistanceForXWeekAgo(_ delta: Int, trips: [Trip]) -> Trip.ChartInfo {
         var totalDistance: Double = 0.0
         var numberOfTrips = 0
-        let weekNumberToFind =  Calendar.current.component(.weekOfYear, from: Date()) - delta
+        var weekNumberToFind =  Calendar.current.component(.weekOfYear, from: Date()) - delta
+        var year = Calendar.current.component(.year, from: Date())
         
+        while weekNumberToFind <= 0 {
+            weekNumberToFind = 52 - weekNumberToFind
+            year -= 1
+        }
+                
         for trip in trips {
             if let tripDate = trip.date.toDate,
-               Calendar.current.component(.weekOfYear, from: tripDate) == weekNumberToFind {
+               Calendar.current.component(.weekOfYear, from: tripDate) == weekNumberToFind,
+               Calendar.current.component(.year, from: tripDate) == year {
                 totalDistance += trip.totalDistance
                 numberOfTrips += 1
             }
@@ -315,7 +322,7 @@ struct TripController: RouteCollection {
         var monthToFind =  Calendar.current.component(.month, from: Date()) - delta
         var year = Calendar.current.component(.year, from: Date())
         
-        if monthToFind <= 0 {
+        while monthToFind <= 0 {
             monthToFind = 12 + monthToFind
             year = year - 1
         }
@@ -323,7 +330,8 @@ struct TripController: RouteCollection {
         
         for trip in trips {
             if let tripDate = trip.date.toDate,
-               Calendar.current.component(.month, from: tripDate) == monthToFind {
+               Calendar.current.component(.month, from: tripDate) == monthToFind,
+               Calendar.current.component(.year, from: tripDate) == year {
                 totalDistance += trip.totalDistance
                 numberOfTrips += 1
             }
