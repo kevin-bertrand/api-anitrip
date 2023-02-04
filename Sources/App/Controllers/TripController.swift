@@ -68,6 +68,7 @@ struct TripController: RouteCollection {
             .set(\.$date, to: receivedData.date)
             .set(\.$missions, to: receivedData.missions)
             .set(\.$totalDistance, to: receivedData.totalDistance)
+            .set(\.$isRoundTrip, to: receivedData.isRoundTrip)
             .set(\.$startingAddress.$id, to: startingAddressId)
             .set(\.$endingAddress.$id, to: endingAddressId)
             .set(\.$comment, to: receivedData.comment)
