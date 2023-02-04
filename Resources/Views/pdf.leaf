@@ -77,6 +77,7 @@
                         <th>Trajet</th>
                         <th>Motif</th>
                         <th>Km parcourus</th>
+                        <th>Aller/Retour</th>
                     </tr>
                 </thead
                 <tbody>
@@ -94,6 +95,7 @@
                         <td class="empty-table-cell"></td>
                         <td class="empty-table-cell"></td>
                         <td>#(totalDistance) km</td>
+                        <td class="empty-table-cell"></td>
                     </tr>
                 </tfoot>
             </table>

@@ -203,7 +203,7 @@ struct TripController: RouteCollection {
                              "\(startingAddress?.city ?? "No address") -> \(endingAddress?.city ?? "No address")",
                              "\(trip.missions.joined(separator: ", "))\(trip.comment != nil ? ("\n" + trip.comment!) : "")",
                              "\(trip.totalDistance.twoDigitPrecision) km",
-                             trip.isRoundTrip ? "✅" : "❌"])
+                             trip.isRoundTrip ? "&#9989;" : "&#10060;"])
             totalDistance += trip.totalDistance
         }
         
