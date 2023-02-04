@@ -202,7 +202,8 @@ struct TripController: RouteCollection {
             tripList.append(["\((tripDate.toDate ?? Date()).dateOnly)",
                              "\(startingAddress?.city ?? "No address") -> \(endingAddress?.city ?? "No address")",
                              "\(trip.missions.joined(separator: ", "))\(trip.comment != nil ? ("\n" + trip.comment!) : "")",
-                             "\(trip.totalDistance.twoDigitPrecision) km"])
+                             "\(trip.totalDistance.twoDigitPrecision) km",
+                             trip.isRoundTrip ? "✅" : "❌"])
             totalDistance += trip.totalDistance
         }
         
