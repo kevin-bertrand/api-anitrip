@@ -41,6 +41,7 @@ struct TripController: RouteCollection {
                            missions: receivedData.missions,
                            comment: receivedData.comment,
                            totalDistance: receivedData.totalDistance,
+                           isRoundTrip: receivedData.isRoundTrip,
                            userID: userId,
                            startingAddressID: startingAddressId,
                            endingAddressID: endingAddressId)
@@ -102,6 +103,7 @@ struct TripController: RouteCollection {
                                                       missions: trip.missions,
                                                       comment: trip.comment,
                                                       totalDistance: trip.totalDistance,
+                                                      isRoundTrip: trip.isRoundTrip,
                                                       startingAddress: startingAddress,
                                                       endingAddress: endingAddress))
             
@@ -137,6 +139,7 @@ struct TripController: RouteCollection {
                                                       missions: trip.missions,
                                                       comment: trip.comment,
                                                       totalDistance: trip.totalDistance,
+                                                      isRoundTrip: trip.isRoundTrip,
                                                       startingAddress: startingAddress,
                                                       endingAddress: endingAddress))
         }

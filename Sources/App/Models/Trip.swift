@@ -29,6 +29,9 @@ final class Trip: Model, Content {
     @Field(key: "total_distance")
     var totalDistance: Double
     
+    @Field(key: "is_round_trip")
+    var isRoundTrip: Bool
+    
     @Parent(key: "starting_address")
     var startingAddress: Address
     
@@ -46,6 +49,7 @@ final class Trip: Model, Content {
          missions: [String],
          comment: String?,
          totalDistance: Double,
+         isRoundTrip: Bool,
          userID: User.IDValue,
          startingAddressID: Address.IDValue,
          endingAddressID: Address.IDValue) {
@@ -54,6 +58,7 @@ final class Trip: Model, Content {
         self.missions = missions
         self.comment = comment
         self.totalDistance = totalDistance
+        self.isRoundTrip = isRoundTrip
         self.$user.id = userID
         self.$startingAddress.id = startingAddressID
         self.$endingAddress.id = endingAddressID

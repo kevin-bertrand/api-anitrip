@@ -14,6 +14,7 @@ extension Trip {
         let missions: [String]
         let comment: String?
         let totalDistance: Double
+        let isRoundTrip: Bool
         let startingAddress: Address
         let endingAddress: Address
     }
@@ -24,6 +25,7 @@ extension Trip {
         let missions: [String]
         let comment: String?
         let totalDistance: Double
+        let isRoundTrip: Bool
         let startingAddress: Address?
         let endingAddress: Address?
     }
