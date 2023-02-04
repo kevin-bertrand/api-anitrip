@@ -18,6 +18,7 @@ struct TripController: RouteCollection {
         let tokenGroup = tripGroup.grouped(UserToken.authenticator()).grouped(UserToken.guardMiddleware())
         tokenGroup.post(use: add)
         tokenGroup.post("toExport", use: getToExport)
+        tokenGroup.delete(":id", use: delete)
         tokenGroup.patch(use: update)
         tokenGroup.get(":userID", use: getList)
         tokenGroup.get("latest", ":userID", use: getThreeLatests)
@@ -47,6 +48,26 @@ struct TripController: RouteCollection {
                            endingAddressID: endingAddressId)
         
         try await newTrip.save(on: req.db)
+        
+        return .init(status: .ok, headers: getDefaultHttpHeader(), body: .empty)
+    }
+    
+    private func delete(req: Request) async throws -> Response {
+        let userAuth = try getUserAuthFor(req)
+        let tripId = req.parameters.get("id", as: UUID.self)
+        
+        guard let tripId,
+              let trip = try await Trip.find(tripId, on: req.db) else {
+            throw Abort(.notFound)
+        }
+        
+        guard trip.$user.id == userAuth.id else {
+            throw Abort(.unauthorized)
+        }
+        
+        try await Trip.query(on: req.db)
+            .filter(\.$id == tripId)
+            .delete()
         
         return .init(status: .ok, headers: getDefaultHttpHeader(), body: .empty)
     }
