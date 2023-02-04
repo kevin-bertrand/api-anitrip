@@ -84,7 +84,7 @@
                     #for(trip in trips):
                         <tr>
                             #for(part in trip):
-                                #if(part == "V":
+                                #if(part == "V"):
                                     <td style="color: green;">#(part)</td>
                                 #elseif(part == "X"):
                                     <td style="color: red;">#(part)</td>
